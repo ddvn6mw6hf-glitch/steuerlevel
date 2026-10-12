@@ -1,5 +1,5 @@
 import { lessons } from './content'
-import { questionBank } from './questionBank'
+import { legacyQuestionIds, questionBank } from './questionBank'
 import { defaultPreferences } from './scenarios'
 import type { LearningPreferences } from './types'
 
@@ -24,7 +24,10 @@ const ageGroups = ['18-24', '25-34', '35+']
 const lifeSituations = ['dual-apprentice', 'university', 'employee', 'founder']
 const interests = ['salary', 'side-business', 'everyday']
 const knownLessonIds = new Set(lessons.map((lesson) => lesson.id))
-const knownQuestionIds = new Set(questionBank.map((entry) => entry.question.id))
+const knownQuestionIds = new Set([
+  ...questionBank.map((entry) => entry.question.id),
+  ...legacyQuestionIds,
+])
 
 export function createDefaultLearningData(): LearningData {
   return {

@@ -67,6 +67,7 @@ describe('Lernfortschritt lokal speichern', () => {
     expect(migrated.progress.steuerfunken).toBe(45)
     expect(migrated.progress.earnedQuestionIds).toEqual(['business-revenue', 'founder-bag-sale'])
     expect(migrated.progress.completedLessonIds).toEqual(['umsatz-gewinn'])
+    expect(migrated.progress.completedLessonIds).not.toContain('steuern-verstehen')
     expect(migrated.progress.bestScores['umsatz-gewinn']).toBe(2)
     expect(persisted.progress).not.toHaveProperty('xp')
     expect(persisted.progress.steuerfunken).toBe(45)

@@ -1,117 +1,128 @@
 import { describe, expect, it } from 'vitest'
-import { lessons } from './content'
-import { defaultPreferences, getFictionalScenario, getLessonForPreferences, getProfileFitExplanation, orderLessonsByInterest } from './scenarios'
+import { lessons } from './curriculum'
+import { draftQuestions } from './draftQuestions'
+import { formatProfileQuestionDiagnostic } from './diagnostic'
 import { difficultyLabels } from './labels'
 import { questionBank } from './questionBank'
+import { defaultPreferences, getFictionalScenario, getPersonalizedLearningPath, getProfileFitExplanation } from './scenarios'
+import type { LifeSituation, MainInterest } from './types'
 
-describe('Personalisierte Lernbeispiele', () => {
-  it('wählt eine fiktive Person passend zu Altersgruppe und Lebenssituation', () => {
-    const scenario = getFictionalScenario({
-      ...defaultPreferences,
-      ageGroup: '35+',
-      lifeSituation: 'founder',
-    }, lessons[0])
+const profiles: LifeSituation[] = ['dual-apprentice', 'university', 'employee', 'founder']
+const interests: MainInterest[] = ['salary', 'side-business', 'everyday']
 
-    expect(scenario).toContain('Alex')
-    expect(scenario).toContain('46-jährige')
-    expect(scenario).toContain('gründungsinteressierte Person')
-  })
-
-  it('stellt die Themen in der für das Interesse passenden Reihenfolge bereit', () => {
-    const salaryPath = orderLessonsByInterest({ ...defaultPreferences, mainInterest: 'salary' })
-    const everydayPath = orderLessonsByInterest({ ...defaultPreferences, mainInterest: 'everyday' })
-
-    expect(salaryPath[0].id).toBe('brutto-netto')
-    expect(everydayPath[0].id).toBe('ausgaben-steuerersparnis')
-  })
-
-  it('hält pro Lektion Felder für spätere Quellen- und Jahresprüfung bereit', () => {
-    expect(lessons.every((lesson) =>
-      lesson.references.sources.length === 0 &&
-      lesson.references.verificationStatus === 'needs_review' &&
-      lesson.references.taxYear === null,
+describe('Profilbasierter Lernpfad', () => {
+  it('enthält mindestens 36 eindeutige spielbare Fragen mit je 3–4 Antworten', () => {
+    const ids = questionBank.map(({ question }) => question.id)
+    expect(new Set(ids).size).toBeGreaterThanOrEqual(36)
+    expect(questionBank).toHaveLength(54)
+    expect(questionBank.every(({ question }) =>
+      question.type === 'choice' &&
+      question.answers.length >= 3 && question.answers.length <= 4 &&
+      question.correctAnswer >= 0 && question.correctAnswer < question.answers.length &&
+      question.explanation.trim().length > 40,
     )).toBe(true)
   })
 
-  it('enthält kurze Lektionen mit mindestens einer interaktiven Euro-Rechnung', () => {
-    expect(lessons.every((lesson) =>
-      lesson.questions.length >= 3 &&
-      lesson.questions.length <= 5 &&
-      lesson.questions.some((question) => question.type === 'calculation'),
-    )).toBe(true)
-  })
-
-  it('liefert vier unterschiedliche Fünf-Fragen-Szenarien mit drei exklusiven Fragen', () => {
-    const lifeSituations = ['dual-apprentice', 'university', 'employee', 'founder'] as const
-    const selectedLessons = lifeSituations.map((lifeSituation) =>
-      getLessonForPreferences(lessons[0], { ...defaultPreferences, lifeSituation }),
-    )
-    const questionSets = selectedLessons.map((lesson) => lesson.questions.map((question) => question.id).join('|'))
-
-    expect(questionBank).toHaveLength(30)
-    expect(new Set(questionSets).size).toBe(4)
-    selectedLessons.forEach((lesson, index) => {
-      const lifeSituation = lifeSituations[index]
-      expect(lesson.questions).toHaveLength(5)
-      expect(lesson.questions.filter((question) => question.tags?.lifeSituation === lifeSituation)).toHaveLength(3)
-      expect(lesson.questions.some((question) => question.type === 'calculation')).toBe(true)
+  it('enthält mindestens sechs nur für das jeweilige Profil ausgewählte Fragen', () => {
+    const exclusiveIds = profiles.map((lifeSituation) => {
+      const path = getPersonalizedLearningPath({ ...defaultPreferences, lifeSituation })
+      return path.flatMap((lesson) => lesson.questions)
+        .filter((question) => question.tags?.lifeSituation === lifeSituation)
+        .map((question) => question.id)
     })
-    expect(selectedLessons[0].questions.filter((question) => selectedLessons[1].questions.some((candidate) => candidate.id === question.id))).toHaveLength(2)
+
+    expect(exclusiveIds.map((ids) => ids.length)).toEqual([6, 6, 6, 6])
+    for (let left = 0; left < exclusiveIds.length; left += 1) {
+      for (let right = left + 1; right < exclusiveIds.length; right += 1) {
+        expect(exclusiveIds[left].some((id) => exclusiveIds[right].includes(id))).toBe(false)
+      }
+    }
   })
 
-  it('ändert bei gleicher Lebenssituation die tatsächlichen Fragen nach Interesse', () => {
-    const salary = getLessonForPreferences(lessons[0], { ...defaultPreferences, mainInterest: 'salary' })
-    const everyday = getLessonForPreferences(lessons[0], { ...defaultPreferences, mainInterest: 'everyday' })
-    const salaryIds = salary.questions.map((question) => question.id)
-    const everydayIds = everyday.questions.map((question) => question.id)
+  it('ändert zwischen Angestellten- und Gründungsprofil mehrere Frage-IDs und Themen', () => {
+    const employeePath = getPersonalizedLearningPath({ ...defaultPreferences, lifeSituation: 'employee' })
+    const founderPath = getPersonalizedLearningPath({ ...defaultPreferences, lifeSituation: 'founder' })
+    const employeeQuestions = employeePath.flatMap((lesson) => lesson.questions)
+    const founderQuestions = founderPath.flatMap((lesson) => lesson.questions)
+    const founderIds = new Set(founderQuestions.map((question) => question.id))
 
-    expect(salaryIds).not.toEqual(everydayIds)
-    expect(salaryIds.filter((id) => everydayIds.includes(id))).toHaveLength(4)
-    expect(salaryIds).toContain('interest-salary-payslip')
-    expect(everydayIds).toContain('interest-everyday-receipt')
+    expect(employeeQuestions.filter((question) => !founderIds.has(question.id))).toHaveLength(6)
+    expect(new Set(employeeQuestions.map((question) => question.concept)))
+      .not.toEqual(new Set(founderQuestions.map((question) => question.concept)))
   })
 
-  it('ordnet die kuratierte Geschäftslektion von Steuer-Newbie bis Steuerstratege', () => {
-    const lesson = getLessonForPreferences(lessons[0], defaultPreferences)
-    const tiers = lesson.questions.map((question) => question.tags?.difficulty)
+  it('ändert bei gleichem Profil die Interessenfragen-IDs und Lernziele', () => {
+    const selections = interests.map((mainInterest) => {
+      const path = getPersonalizedLearningPath({ ...defaultPreferences, mainInterest })
+      return path.flatMap((lesson) => lesson.questions)
+        .filter((question) => question.tags?.interest === mainInterest)
+    })
 
-    expect(tiers).toEqual([1, 1, 1, 2, 3])
-    expect(difficultyLabels[1]).toBe('Steuer-Newbie')
-    expect(difficultyLabels[2]).toBe('Durchblicker')
-    expect(difficultyLabels[3]).toBe('Steuerstratege')
+    expect(selections.map((questions) => questions.map((question) => question.id))).toEqual([
+      expect.arrayContaining(['interest-salary-tax-purpose', 'interest-salary-planning']),
+      expect.arrayContaining(['interest-business-sources', 'interest-business-spending']),
+      expect.arrayContaining(['interest-everyday-purpose', 'interest-everyday-costs']),
+    ])
+    expect(new Set(selections.map((questions) => questions.map((question) => question.concept).join('|'))).size).toBe(3)
   })
 
-  it('hält alle Bankfragen für die redaktionelle Prüfung zurück', () => {
+  it('liefert sechs Lektionen mit je vier Fragen und ohne Duplikate im Lernpfad', () => {
+    profiles.forEach((lifeSituation) => {
+      interests.forEach((mainInterest) => {
+        const path = getPersonalizedLearningPath({ ...defaultPreferences, lifeSituation, mainInterest })
+        const ids = path.flatMap((lesson) => lesson.questions.map((question) => question.id))
+
+        expect(path).toHaveLength(6)
+        expect(path.every((lesson) => lesson.questions.length === 4)).toBe(true)
+        expect(new Set(ids).size).toBe(ids.length)
+      })
+    })
+  })
+
+  it('sortiert in zwei Lektionen je Stufe von Newbie bis Steuerstratege', () => {
+    expect(lessons.map((lesson) => lesson.difficulty)).toEqual([1, 1, 2, 2, 3, 3])
+    expect(difficultyLabels).toEqual({ 1: 'Steuer-Newbie', 2: 'Durchblicker', 3: 'Steuerstratege' })
+    const path = getPersonalizedLearningPath(defaultPreferences)
+    expect(path.map((lesson) => lesson.difficulty)).toEqual([1, 1, 2, 2, 3, 3])
+  })
+
+  it('ändert mit dem Alter nur die fiktive Szene, nicht Fragen oder steuerliche Einordnung', () => {
+    const young = { ...defaultPreferences, ageGroup: '18-24' as const }
+    const older = { ...defaultPreferences, ageGroup: '35+' as const }
+    expect(getFictionalScenario(young, lessons[0])).not.toBe(getFictionalScenario(older, lessons[0]))
+    expect(getPersonalizedLearningPath(young).flatMap((lesson) => lesson.questions.map((question) => question.id)))
+      .toEqual(getPersonalizedLearningPath(older).flatMap((lesson) => lesson.questions.map((question) => question.id)))
+  })
+
+  it('behält frühere passende Abschlüsse bei und führt neue Lektionen nicht als abgeschlossen ein', () => {
+    const oldCompleted = ['brutto-netto', 'umsatz-gewinn', 'ausgaben-steuerersparnis']
+    const newLessonIds = lessons.filter((lesson) => !oldCompleted.includes(lesson.id)).map((lesson) => lesson.id)
+    expect(lessons.filter((lesson) => oldCompleted.includes(lesson.id))).toHaveLength(3)
+    expect(newLessonIds).toEqual(['steuern-verstehen', 'belege-und-kosten', 'geldfluss-und-entscheidungen'])
+    expect(newLessonIds.some((id) => oldCompleted.includes(id))).toBe(false)
+  })
+
+  it('hält rechtlich konkrete Inhalte außerhalb der spielbaren Bank, bis amtliche Prüfung möglich ist', () => {
+    const playableIds = new Set(questionBank.map(({ question }) => question.id))
+    expect(draftQuestions.length).toBeGreaterThanOrEqual(5)
+    expect(draftQuestions.every((entry) =>
+      entry.status === 'needs_official_review' &&
+      entry.playable === false &&
+      entry.sourcesActuallyChecked.length === 0 &&
+      entry.applicableTaxYear === null &&
+      !playableIds.has(entry.question.id),
+    )).toBe(true)
     expect(questionBank.every(({ tags }) =>
-      tags.verificationStatus === 'needs_review' &&
-      tags.sources.length === 0 &&
-      tags.taxYear === null &&
-      Boolean(tags.objective),
+      tags.verificationStatus === 'conceptual_unverified' && tags.sources.length === 0 && tags.taxYear === null,
     )).toBe(true)
   })
 
-  it('ändert den Szenariokontext auch bei gleicher Lebenssituation je nach Interesse', () => {
-    const lesson = lessons[0]
-    const sideBusiness = getFictionalScenario({ ...defaultPreferences, mainInterest: 'side-business' }, lesson)
-    const salary = getFictionalScenario({ ...defaultPreferences, mainInterest: 'salary' }, lesson)
-
-    expect(sideBusiness).not.toBe(salary)
-    expect(sideBusiness).toContain('Nebengewerbe')
-    expect(salary).toContain('Lohn und Einkommen')
-  })
-
-  it('variiert fiktive Alltagsbeispiele nach Alter, ohne Rechtsaussagen abzuleiten', () => {
-    const young = getLessonForPreferences(lessons[0], { ...defaultPreferences, ageGroup: '18-24' })
-    const older = getLessonForPreferences(lessons[0], { ...defaultPreferences, ageGroup: '35+' })
-
-    expect(young.questions.map((question) => question.id)).not.toEqual(older.questions.map((question) => question.id))
-    expect(older.questions.map((question) => question.tags?.difficulty)).toEqual([1, 1, 2, 3, 3])
-    expect(older.questions.map((question) => question.prompt).join(' ')).not.toMatch(/steuerpflichtig|Berechtigung|Schwelle/)
-  })
-
-  it('erklärt, wie Situation und Interesse die Lektionsempfehlung prägen', () => {
-    const explanation = getProfileFitExplanation({ ...defaultPreferences, mainInterest: 'everyday' })
-    expect(explanation).toContain('duales Studium oder Ausbildung')
-    expect(explanation).toContain('Ausgaben und möglichen Steuerwirkungen')
+  it('erklärt die Profilpassung und gibt einen Entwicklerbericht mit IDs und Themen aus', () => {
+    expect(getProfileFitExplanation({ ...defaultPreferences, mainInterest: 'everyday' })).toContain('Alltags')
+    const diagnostic = formatProfileQuestionDiagnostic({ ...defaultPreferences, mainInterest: 'salary' })
+    for (const profile of profiles) expect(diagnostic).toContain(profile)
+    expect(diagnostic).toContain('employee-planter-plan')
+    expect(diagnostic).toContain('founder-bag-batch')
+    expect(diagnostic).toContain('Einkommen und Abrechnung')
   })
 })

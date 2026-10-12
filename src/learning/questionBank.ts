@@ -1,111 +1,110 @@
-import { lessons } from './content'
-import { interestPools } from './interestPools'
-import { profilePools } from './profilePools'
+import { lessons } from './curriculum'
+import { interestQuestionBank } from './interestQuestionBank'
+import { profileQuestionBank } from './profileQuestionBank'
 import type {
   DifficultyTier,
   LearningObjective,
   LearningPreferences,
-  LifeSituation,
   Lesson,
-  MainInterest,
   Question,
   QuestionBankEntry,
   QuestionTags,
 } from './types'
 
-const reviewTags = {
-  verificationStatus: 'needs_review',
+const conceptualReview = {
+  verificationStatus: 'conceptual_unverified',
   sources: [],
   taxYear: null,
 } satisfies Pick<QuestionTags, 'verificationStatus' | 'sources' | 'taxYear'>
 
 function inferObjective(question: Question): LearningObjective {
-  if (/gross|net|brutto|netto|salary/.test(question.id)) return 'understand-gross-net'
-  if (/cash|flow|geldfluss|refund|budget/.test(`${question.id} ${question.concept}`.toLowerCase())) return 'distinguish-cash-flow'
-  if (/expense|spending|saving|ausgabe|steuer/.test(`${question.id} ${question.concept}`.toLowerCase())) return 'compare-spending-savings'
-  if (/cost|kosten|material|repair|fees|delivery|packaging|stock/.test(`${question.id} ${question.concept}`.toLowerCase())) return 'identify-costs'
-  if (question.type === 'calculation') return 'calculate-surplus'
-  if (/revenue|umsatz|verkauf|sale/.test(`${question.id} ${question.concept}`.toLowerCase())) return 'distinguish-revenue'
+  const description = `${question.id} ${question.concept}`.toLowerCase()
+  if (/brutto|netto|abrechnung|salary/.test(description)) return 'understand-gross-net'
+  if (/cash|flow|zahlung|liquid|geldfluss|refund/.test(description)) return 'distinguish-cash-flow'
+  if (/ausgabe|saving|expense|steuerersparnis/.test(description)) return 'compare-spending-savings'
+  if (/beleg|dokument|receipt|record/.test(description)) return 'keep-records'
+  if (/umsatz|verkauf|sale|revenue/.test(description)) return 'distinguish-revenue'
+  if (/kosten|cost|material|expense/.test(description)) return 'identify-costs'
+  if (/steuer|purpose|gemeinsam/.test(description)) return 'understand-purpose'
   return 'reason-from-scenario'
+}
+
+function lessonDifficulty(lessonId: string): DifficultyTier {
+  return lessons.find((lesson) => lesson.id === lessonId)?.difficulty ?? 1
 }
 
 function createEntry(
   question: Question,
-  lifeSituation: LifeSituation | 'shared',
-  interest: MainInterest | 'shared',
-  difficulty: DifficultyTier,
-  objective = inferObjective(question),
+  lessonId: string,
+  lifeSituation: QuestionTags['lifeSituation'],
+  interest: QuestionTags['interest'],
+  difficulty = lessonDifficulty(lessonId),
 ): QuestionBankEntry {
+  const objective = inferObjective(question)
   return {
-    question,
-    tags: {
-      lifeSituation,
-      interest,
-      difficulty,
-      objective,
-      ...reviewTags,
-    },
+    question: { ...question, lessonId },
+    tags: { lessonId, lifeSituation, interest, difficulty, objective, ...conceptualReview },
   }
 }
 
-function getSharedEntries(): QuestionBankEntry[] {
-  return lessons.flatMap((lesson) =>
-    lesson.questions.map((question, index) => {
-      const difficulty = (index + 1) as DifficultyTier
-      return createEntry(question, 'shared', 'shared', difficulty)
-    }),
-  )
-}
+const coreEntries = lessons.flatMap((lesson) =>
+  lesson.questions.map((question) => createEntry(question, lesson.id, 'shared', 'shared')),
+)
 
-function getProfileEntries(): QuestionBankEntry[] {
-  return (Object.keys(profilePools) as LifeSituation[]).flatMap((lifeSituation) =>
-    profilePools[lifeSituation].questions.map((question, index) =>
-      createEntry(question, lifeSituation, 'shared', (index + 1) as DifficultyTier),
-    ),
-  )
-}
+const profileEntries = Object.entries(profileQuestionBank).flatMap(([lifeSituation, pool]) =>
+  pool.questions.map((question) => {
+    const lessonId = question.lessonId
+    if (!lessonId) throw new Error(`Profilfrage ${question.id} hat keine lessonId.`)
+    return createEntry(question, lessonId, lifeSituation as QuestionTags['lifeSituation'], 'shared')
+  }),
+)
 
-function getInterestEntries(): QuestionBankEntry[] {
-  return (Object.keys(interestPools) as MainInterest[]).flatMap((interest) =>
-    interestPools[interest].map((question, index) =>
-      createEntry(question, 'shared', interest, (index + 1) as DifficultyTier),
-    ),
-  )
-}
+const interestEntries = Object.entries(interestQuestionBank).flatMap(([interest, questions]) =>
+  questions.map((question) => {
+    const lessonId = question.lessonId
+    if (!lessonId) throw new Error(`Interessenfrage ${question.id} hat keine lessonId.`)
+    return createEntry(question, lessonId, 'shared', interest as QuestionTags['interest'])
+  }),
+)
 
-export const questionBank: QuestionBankEntry[] = [
-  ...getSharedEntries(),
-  ...getProfileEntries(),
-  ...getInterestEntries(),
+export const questionBank: QuestionBankEntry[] = [...coreEntries, ...profileEntries, ...interestEntries]
+  .filter((entry) => entry.tags.verificationStatus === 'conceptual_unverified')
+
+export const legacyQuestionIds = [
+  'business-revenue', 'business-profit-calculation', 'business-costs',
+  'salary-gross', 'salary-net-calculation', 'salary-deductions',
+  'spending-not-gain', 'expense-saving-calculation', 'expense-cash-flow',
+  'dual-bike-sale', 'dual-bike-margin', 'dual-bike-repairs',
+  'uni-card-sale', 'uni-card-margin', 'uni-card-fees',
+  'employee-planter-sale', 'employee-planter-margin', 'employee-planter-delivery',
+  'founder-bag-sale', 'founder-bag-margin', 'founder-bag-packaging',
+  'interest-salary-payslip', 'interest-salary-side-income', 'interest-salary-budget',
+  'interest-business-receipts', 'interest-business-stock', 'interest-business-cash',
+  'interest-everyday-receipt', 'interest-everyday-refund', 'interest-everyday-costs',
 ]
-
-function questionForEntry(entry: QuestionBankEntry): Question {
-  return { ...entry.question, tags: entry.tags }
-}
 
 export function selectQuestionsForPreferences(
   lesson: Lesson,
   preferences: LearningPreferences,
 ): Question[] {
-  if (lesson.id !== 'umsatz-gewinn') {
-    const sharedQuestions = lesson.questions.map((question) => {
-      const entry = questionBank.find((candidate) => candidate.question.id === question.id)
-      return entry ? questionForEntry(entry) : question
-    })
-    return sharedQuestions
-  }
+  const selected = questionBank.filter((entry) =>
+    entry.tags.lessonId === lesson.id &&
+    (entry.tags.lifeSituation === 'shared' || entry.tags.lifeSituation === preferences.lifeSituation) &&
+    (entry.tags.interest === 'shared' || entry.tags.interest === preferences.mainInterest),
+  )
 
-  const sharedCore = questionBank.find((entry) => entry.question.id === 'business-revenue')
-  const profileQuestions = questionBank.filter((entry) => entry.tags.lifeSituation === preferences.lifeSituation)
-  const interestQuestions = questionBank.filter((entry) => entry.tags.interest === preferences.mainInterest)
-  const ageVariant: Record<LearningPreferences['ageGroup'], number> = {
-    '18-24': 0,
-    '25-34': 1,
-    '35+': 2,
-  }
-  const selected = [sharedCore, ...profileQuestions, interestQuestions[ageVariant[preferences.ageGroup]]].filter(
-    (entry): entry is QuestionBankEntry => entry !== undefined,
-  ).sort((left, right) => left.tags.difficulty - right.tags.difficulty)
+  const uniqueById = new Map(selected.map((entry) => [entry.question.id, entry]))
+  return [...uniqueById.values()]
+    .sort((left, right) => left.tags.difficulty - right.tags.difficulty || left.question.id.localeCompare(right.question.id))
+    .map((entry) => ({ ...entry.question, tags: entry.tags }))
+}
 
-  return selected.map(questionForEntry)
+export function selectLearningPath(
+  preferences: LearningPreferences,
+  availableLessons: Lesson[] = lessons,
+): Lesson[] {
+  return [...availableLessons]
+    .sort((left, right) => left.difficulty - right.difficulty || left.title.localeCompare(right.title, 'de'))
+    .map((lesson) => ({ ...lesson, questions: selectQuestionsForPreferences(lesson, preferences) }))
+    .filter((lesson) => lesson.questions.length >= 4 && lesson.questions.length <= 6)
 }

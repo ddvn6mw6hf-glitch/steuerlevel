@@ -19,7 +19,7 @@ function LessonPath({ data, onChangeProfile, onStartLesson }: Props) {
     <main className="main-content path-page">
       <section className="path-heading">
         <div>
-          <p className="eyebrow">DEIN LERNPFAD <span className="eyebrow-divider">/</span> 3 KURZE LEKTIONEN</p>
+          <p className="eyebrow">DEIN LERNPFAD <span className="eyebrow-divider">/</span> 6 LERNSCHRITTE</p>
           <h1>Steuerwissen, <span>Schritt für Schritt.</span></h1>
           <p className="intro-copy">Wähle eine Lektion, sammle Wissen und komm jederzeit wieder.</p>
         </div>

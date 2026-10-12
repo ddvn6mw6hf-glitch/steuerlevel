@@ -4,7 +4,6 @@ import Onboarding from './components/Onboarding'
 import QuestionCard from './components/QuestionCard'
 import SessionSummary from './components/SessionSummary'
 import { getFictionalScenario, getLessonForPreferences } from './learning/scenarios'
-import { lessons } from './learning/content'
 import { loadLearningData, saveLearningData, type LearningData } from './learning/storage'
 import type { LearningPreferences, Lesson, QuizSession } from './learning/types'
 import { advanceSession, createQuizSession, getSessionScore, isLessonComplete, submitAnswer } from './quiz'
@@ -12,13 +11,13 @@ import BusinessSimulation from './components/BusinessSimulation'
 import FunkenMark from './components/FunkenMark'
 
 function App() {
-  const [data, setData] = useState<LearningData>(() => loadLearningData())
+  const [initialData] = useState<LearningData>(() => loadLearningData())
+  const [data, setData] = useState<LearningData>(initialData)
   const [view, setView] = useState<'onboarding' | 'path' | 'lesson' | 'summary'>(() =>
-    loadLearningData().onboardingComplete ? 'path' : 'onboarding',
+    initialData.onboardingComplete ? 'path' : 'onboarding',
   )
-  const [activeLessonId, setActiveLessonId] = useState<string | null>(null)
+  const [activeLesson, setActiveLesson] = useState<Lesson | null>(null)
   const [session, setSession] = useState<QuizSession | null>(null)
-  const activeLesson = lessons.find((lesson) => lesson.id === activeLessonId) ?? null
 
   function persist(update: (current: LearningData) => LearningData) {
     const next = update(data)
@@ -37,7 +36,7 @@ function App() {
 
   function startLesson(lesson: Lesson) {
     const personalizedLesson = getLessonForPreferences(lesson, data.preferences)
-    setActiveLessonId(personalizedLesson.id)
+    setActiveLesson(personalizedLesson)
     setSession(createQuizSession(personalizedLesson))
     setView('lesson')
   }

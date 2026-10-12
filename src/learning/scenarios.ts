@@ -17,9 +17,9 @@ const fictionalProfiles = {
 } satisfies Record<LearningPreferences['lifeSituation'], { name: string; ages: Record<LearningPreferences['ageGroup'], number>; role: string }>
 
 const interestLessonOrder: Record<LearningPreferences['mainInterest'], string[]> = {
-  'side-business': ['umsatz-gewinn', 'brutto-netto', 'ausgaben-steuerersparnis'],
-  salary: ['brutto-netto', 'umsatz-gewinn', 'ausgaben-steuerersparnis'],
-  everyday: ['ausgaben-steuerersparnis', 'brutto-netto', 'umsatz-gewinn'],
+  'side-business': ['umsatz-gewinn', 'belege-und-kosten', 'geldfluss-und-entscheidungen', 'steuern-verstehen', 'brutto-netto', 'ausgaben-steuerersparnis'],
+  salary: ['brutto-netto', 'steuern-verstehen', 'geldfluss-und-entscheidungen', 'umsatz-gewinn', 'belege-und-kosten', 'ausgaben-steuerersparnis'],
+  everyday: ['steuern-verstehen', 'belege-und-kosten', 'ausgaben-steuerersparnis', 'brutto-netto', 'umsatz-gewinn', 'geldfluss-und-entscheidungen'],
 }
 
 export function orderLessonsByInterest(
@@ -27,7 +27,9 @@ export function orderLessonsByInterest(
   availableLessons: Lesson[] = lessons,
 ): Lesson[] {
   const order = interestLessonOrder[preferences.mainInterest]
-  return [...availableLessons].sort((left, right) => order.indexOf(left.id) - order.indexOf(right.id))
+  return [...availableLessons].sort((left, right) =>
+    left.difficulty - right.difficulty || order.indexOf(left.id) - order.indexOf(right.id),
+  )
 }
 
 export function getFictionalScenario(preferences: LearningPreferences, lesson: Lesson): string {
@@ -48,6 +50,10 @@ export function getLessonForPreferences(lesson: Lesson, preferences: LearningPre
   return { ...lesson, questions: selectQuestionsForPreferences(lesson, preferences) }
 }
 
+export function getPersonalizedLearningPath(preferences: LearningPreferences): Lesson[] {
+  return orderLessonsByInterest(preferences).map((lesson) => getLessonForPreferences(lesson, preferences))
+}
+
 export function getProfileFitExplanation(preferences: LearningPreferences): string {
   const situationLabels: Record<LearningPreferences['lifeSituation'], string> = {
     'dual-apprentice': 'duales Studium oder Ausbildung',
@@ -56,9 +62,9 @@ export function getProfileFitExplanation(preferences: LearningPreferences): stri
     founder: 'Selbstständigkeit oder Gründung',
   }
   const interestExplanations: Record<LearningPreferences['mainInterest'], string> = {
-    salary: 'Darum steht zuerst Brutto und Netto auf dem Lernpfad.',
-    'side-business': 'Darum startet dein Lernpfad mit Umsatz, Kosten und Überschuss.',
-    everyday: 'Darum beginnt dein Lernpfad mit Ausgaben und möglichen Steuerwirkungen.',
+    salary: 'Deine Auswahl verändert konkrete Abrechnungs- und Geldflussfragen im Lernpfad.',
+    'side-business': 'Deine Auswahl verändert konkrete Verkaufs-, Kosten- und Belegfragen im Lernpfad.',
+    everyday: 'Deine Auswahl verändert konkrete Alltags-, Zahlungs- und Ausgabenfragen im Lernpfad.',
   }
   return `Die Beispiele orientieren sich an deiner Auswahl „${situationLabels[preferences.lifeSituation]}“. ${interestExplanations[preferences.mainInterest]}`
 }

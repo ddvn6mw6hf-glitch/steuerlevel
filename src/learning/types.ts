@@ -3,12 +3,17 @@ export type LifeSituation = 'dual-apprentice' | 'university' | 'employee' | 'fou
 export type MainInterest = 'salary' | 'side-business' | 'everyday'
 export type DifficultyTier = 1 | 2 | 3
 export type LearningObjective =
+  | 'understand-purpose'
+  | 'sort-income'
   | 'distinguish-revenue'
   | 'identify-costs'
   | 'calculate-surplus'
   | 'distinguish-cash-flow'
   | 'understand-gross-net'
   | 'compare-spending-savings'
+  | 'keep-records'
+  | 'understand-depreciation'
+  | 'distinguish-tax-types'
   | 'reason-from-scenario'
 
 export type LearningPreferences = {
@@ -25,6 +30,7 @@ export type Calculation = {
 
 type QuestionBase = {
   id: string
+  lessonId?: string
   prompt: string
   explanation: string
   concept: string
@@ -48,11 +54,12 @@ export type CalculationQuestion = QuestionBase & {
 export type Question = ChoiceQuestion | CalculationQuestion
 
 export type QuestionTags = {
+  lessonId: string
   lifeSituation: LifeSituation | 'shared'
   interest: MainInterest | 'shared'
   difficulty: DifficultyTier
   objective: LearningObjective
-  verificationStatus: 'needs_review' | 'qualified_reviewed'
+  verificationStatus: 'conceptual_unverified' | 'needs_official_review' | 'source_checked'
   sources: LearningSource[]
   taxYear: number | null
 }
@@ -64,6 +71,8 @@ export type QuestionBankEntry = {
 
 export type Lesson = {
   id: string
+  difficulty: DifficultyTier
+  topic: string
   title: string
   shortTitle: string
   subtitle: string
@@ -73,7 +82,7 @@ export type Lesson = {
   questions: Question[]
   references: {
     sources: Array<{ title: string; url: string }>
-    verificationStatus: 'needs_review' | 'qualified_reviewed'
+    verificationStatus: 'conceptual_unverified' | 'needs_official_review' | 'source_checked'
     taxYear: number | null
   }
 }

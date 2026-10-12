@@ -19,7 +19,7 @@ describe('Quiz-Auswertung', () => {
   })
 
   it('zählt nur richtig beantwortete Fragen', () => {
-    expect(calculateScore([0, 2, 0])).toBe(2)
+    expect(calculateScore([0, 0])).toBe(2)
     expect(calculateScore([null, 2, null])).toBe(0)
   })
 
@@ -74,6 +74,6 @@ describe('Quiz-Auswertung', () => {
 
     expect(ordered[0].id).toBe('brutto-netto')
     expect(getNextLessonRecommendation('brutto-netto', salaryPreferences, ['brutto-netto'])?.id)
-      .toBe('umsatz-gewinn')
+      .toBe('steuern-verstehen')
   })
 })
