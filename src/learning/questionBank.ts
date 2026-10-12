@@ -104,7 +104,7 @@ export function selectLearningPath(
   availableLessons: Lesson[] = lessons,
 ): Lesson[] {
   return [...availableLessons]
-    .sort((left, right) => left.difficulty - right.difficulty || left.title.localeCompare(right.title, 'de'))
+    .sort((left, right) => left.difficulty - right.difficulty)
     .map((lesson) => ({ ...lesson, questions: selectQuestionsForPreferences(lesson, preferences) }))
     .filter((lesson) => lesson.questions.length >= 4 && lesson.questions.length <= 6)
 }

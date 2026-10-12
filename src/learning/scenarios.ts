@@ -1,6 +1,7 @@
 import { lessons } from './content'
 import { profilePools } from './profilePools'
-import { selectQuestionsForPreferences } from './questionBank'
+import { selectLearningPath, selectQuestionsForPreferences } from './questionBank'
+import { getNextLesson } from './progression'
 import type { LearningPreferences, Lesson } from './types'
 
 export const defaultPreferences: LearningPreferences = {
@@ -15,6 +16,41 @@ const fictionalProfiles = {
   employee: { name: 'Samira', ages: { '18-24': 23, '25-34': 31, '35+': 42 }, role: 'angestellte Person' },
   founder: { name: 'Alex', ages: { '18-24': 24, '25-34': 32, '35+': 46 }, role: 'gründungsinteressierte Person' },
 } satisfies Record<LearningPreferences['lifeSituation'], { name: string; ages: Record<LearningPreferences['ageGroup'], number>; role: string }>
+
+const profileTopics: Record<LearningPreferences['lifeSituation'], Record<string, string>> = {
+  'dual-apprentice': {
+    'steuern-verstehen': 'Lernalltag und Projektbeträge',
+    'brutto-netto': 'Fiktive Ausbildungsabrechnung',
+    'umsatz-gewinn': 'Fahrrad-Nebenprojekt',
+    'belege-und-kosten': 'Material im Lernprojekt',
+    'geldfluss-und-entscheidungen': 'Zahlung nach dem Verkauf',
+    'ausgaben-steuerersparnis': 'Werkzeug und private Nutzung',
+  },
+  university: {
+    'steuern-verstehen': 'Gemeinsame Studienprojekte',
+    'brutto-netto': 'Studienbudget und Abrechnung',
+    'umsatz-gewinn': 'Lernkarten am Campus',
+    'belege-und-kosten': 'Campusstand und Projektkosten',
+    'geldfluss-und-entscheidungen': 'Sammelauszahlung am Campus',
+    'ausgaben-steuerersparnis': 'Seminarbuch und private Nutzung',
+  },
+  employee: {
+    'steuern-verstehen': 'Gehaltsabrechnung und Freizeitprojekt',
+    'brutto-netto': 'Monatsbudget aus Beispielabrechnung',
+    'umsatz-gewinn': 'Kräuterkästen am Nachbarschaftsmarkt',
+    'belege-und-kosten': 'Lieferung fürs Freizeitprojekt',
+    'geldfluss-und-entscheidungen': 'Offene Projekt-Rechnung',
+    'ausgaben-steuerersparnis': 'Werkzeug mit gemischter Nutzung',
+  },
+  founder: {
+    'steuern-verstehen': 'Testserie und Projektplanung',
+    'brutto-netto': 'Private Auszahlung und Projektbeträge',
+    'umsatz-gewinn': 'Fahrradtaschen in Testserien',
+    'belege-und-kosten': 'Verpackung je Testserie',
+    'geldfluss-und-entscheidungen': 'Vorbestellung und Zahlungstermine',
+    'ausgaben-steuerersparnis': 'Langlebige Projektanschaffung',
+  },
+}
 
 const interestLessonOrder: Record<LearningPreferences['mainInterest'], string[]> = {
   'side-business': ['umsatz-gewinn', 'belege-und-kosten', 'geldfluss-und-entscheidungen', 'steuern-verstehen', 'brutto-netto', 'ausgaben-steuerersparnis'],
@@ -47,11 +83,19 @@ export function getFictionalScenario(preferences: LearningPreferences, lesson: L
 }
 
 export function getLessonForPreferences(lesson: Lesson, preferences: LearningPreferences): Lesson {
-  return { ...lesson, questions: selectQuestionsForPreferences(lesson, preferences) }
+  return {
+    ...lesson,
+    topic: profileTopics[preferences.lifeSituation][lesson.id] ?? lesson.topic,
+    questions: selectQuestionsForPreferences(lesson, preferences),
+  }
 }
 
 export function getPersonalizedLearningPath(preferences: LearningPreferences): Lesson[] {
-  return orderLessonsByInterest(preferences).map((lesson) => getLessonForPreferences(lesson, preferences))
+  const ordered = orderLessonsByInterest(preferences)
+  return selectLearningPath(preferences, ordered).map((lesson) => ({
+    ...lesson,
+    topic: profileTopics[preferences.lifeSituation][lesson.id] ?? lesson.topic,
+  }))
 }
 
 export function getProfileFitExplanation(preferences: LearningPreferences): string {
@@ -74,6 +118,9 @@ export function getNextLessonRecommendation(
   preferences: LearningPreferences,
   completedLessonIds: string[],
 ): Lesson | null {
-  const ordered = orderLessonsByInterest(preferences)
-  return ordered.find((lesson) => lesson.id !== currentLessonId && !completedLessonIds.includes(lesson.id)) ?? null
+  const path = getPersonalizedLearningPath(preferences)
+  const completed = completedLessonIds.includes(currentLessonId)
+    ? completedLessonIds
+    : [...completedLessonIds, currentLessonId]
+  return getNextLesson(path, completed)
 }

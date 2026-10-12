@@ -4,6 +4,8 @@ import { draftQuestions } from './draftQuestions'
 import { formatProfileQuestionDiagnostic } from './diagnostic'
 import { difficultyLabels } from './labels'
 import { questionBank } from './questionBank'
+import { profilePools } from './profilePools'
+import { interestPools } from './interestPools'
 import { defaultPreferences, getFictionalScenario, getPersonalizedLearningPath, getProfileFitExplanation } from './scenarios'
 import type { LifeSituation, MainInterest } from './types'
 
@@ -14,7 +16,7 @@ describe('Profilbasierter Lernpfad', () => {
   it('enthält mindestens 36 eindeutige spielbare Fragen mit je 3–4 Antworten', () => {
     const ids = questionBank.map(({ question }) => question.id)
     expect(new Set(ids).size).toBeGreaterThanOrEqual(36)
-    expect(questionBank).toHaveLength(54)
+    expect(questionBank).toHaveLength(55)
     expect(questionBank.every(({ question }) =>
       question.type === 'choice' &&
       question.answers.length >= 3 && question.answers.length <= 4 &&
@@ -39,16 +41,32 @@ describe('Profilbasierter Lernpfad', () => {
     }
   })
 
+  it('behält jede Frage-ID aus den zuvor vorhandenen Profil- und Interessenpools bei', () => {
+    const previousIds = [
+      ...Object.values(profilePools).flatMap((pool) => pool.questions.map((question) => question.id)),
+      ...Object.values(interestPools).flatMap((questions) => questions.map((question) => question.id)),
+    ]
+    const playableIds = new Set(questionBank.map(({ question }) => question.id))
+
+    expect(previousIds).toHaveLength(21)
+    expect(previousIds.every((id) => playableIds.has(id))).toBe(true)
+  })
+
   it('ändert zwischen Angestellten- und Gründungsprofil mehrere Frage-IDs und Themen', () => {
     const employeePath = getPersonalizedLearningPath({ ...defaultPreferences, lifeSituation: 'employee' })
     const founderPath = getPersonalizedLearningPath({ ...defaultPreferences, lifeSituation: 'founder' })
     const employeeQuestions = employeePath.flatMap((lesson) => lesson.questions)
     const founderQuestions = founderPath.flatMap((lesson) => lesson.questions)
     const founderIds = new Set(founderQuestions.map((question) => question.id))
+    const employeeBusiness = employeePath.find((lesson) => lesson.id === 'umsatz-gewinn')
+    const founderBusiness = founderPath.find((lesson) => lesson.id === 'umsatz-gewinn')
 
     expect(employeeQuestions.filter((question) => !founderIds.has(question.id))).toHaveLength(6)
     expect(new Set(employeeQuestions.map((question) => question.concept)))
       .not.toEqual(new Set(founderQuestions.map((question) => question.concept)))
+    expect(employeeBusiness?.topic).toBe('Kräuterkästen am Nachbarschaftsmarkt')
+    expect(founderBusiness?.topic).toBe('Fahrradtaschen in Testserien')
+    expect(employeeBusiness?.topic).not.toBe(founderBusiness?.topic)
   })
 
   it('ändert bei gleichem Profil die Interessenfragen-IDs und Lernziele', () => {
@@ -73,7 +91,7 @@ describe('Profilbasierter Lernpfad', () => {
         const ids = path.flatMap((lesson) => lesson.questions.map((question) => question.id))
 
         expect(path).toHaveLength(6)
-        expect(path.every((lesson) => lesson.questions.length === 4)).toBe(true)
+        expect(path.every((lesson) => lesson.questions.length >= 4 && lesson.questions.length <= 5)).toBe(true)
         expect(new Set(ids).size).toBe(ids.length)
       })
     })
@@ -84,6 +102,7 @@ describe('Profilbasierter Lernpfad', () => {
     expect(difficultyLabels).toEqual({ 1: 'Steuer-Newbie', 2: 'Durchblicker', 3: 'Steuerstratege' })
     const path = getPersonalizedLearningPath(defaultPreferences)
     expect(path.map((lesson) => lesson.difficulty)).toEqual([1, 1, 2, 2, 3, 3])
+    expect(path.every((lesson) => lesson.questions.every((question) => question.tags?.difficulty === lesson.difficulty))).toBe(true)
   })
 
   it('ändert mit dem Alter nur die fiktive Szene, nicht Fragen oder steuerliche Einordnung', () => {
@@ -121,8 +140,8 @@ describe('Profilbasierter Lernpfad', () => {
     expect(getProfileFitExplanation({ ...defaultPreferences, mainInterest: 'everyday' })).toContain('Alltags')
     const diagnostic = formatProfileQuestionDiagnostic({ ...defaultPreferences, mainInterest: 'salary' })
     for (const profile of profiles) expect(diagnostic).toContain(profile)
-    expect(diagnostic).toContain('employee-planter-plan')
-    expect(diagnostic).toContain('founder-bag-batch')
+    expect(diagnostic).toContain('employee-planter-sale')
+    expect(diagnostic).toContain('founder-bag-sale')
     expect(diagnostic).toContain('Einkommen und Abrechnung')
   })
 })

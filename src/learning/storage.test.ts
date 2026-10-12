@@ -86,4 +86,22 @@ describe('Lernfortschritt lokal speichern', () => {
 
     expect(loadLearningData(readOnlyStorage).progress.steuerfunken).toBe(29)
   })
+
+  it('behält abgeschlossene Curriculum-IDs nach dem Speichern und erneuten Laden', () => {
+    const storage = createMemoryStorage()
+    const saved = {
+      preferences: defaultPreferences,
+      onboardingComplete: true,
+      progress: {
+        steuerfunken: 20,
+        earnedQuestionIds: ['tax-common-purpose'],
+        completedLessonIds: ['brutto-netto'],
+        bestScores: { 'brutto-netto': 1 },
+      },
+    }
+
+    saveLearningData(saved, storage)
+    expect(loadLearningData(storage)).toEqual(saved)
+    expect(loadLearningData(storage).progress.completedLessonIds).not.toContain('steuern-verstehen')
+  })
 })

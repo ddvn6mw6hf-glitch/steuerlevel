@@ -1,11 +1,12 @@
 import type { LifeSituation, Question } from './types'
+import { profilePools } from './profilePools'
 
 type ExclusiveProfileQuestions = {
   scenario: string
   questions: Question[]
 }
 
-export const profileQuestionBank: Record<LifeSituation, ExclusiveProfileQuestions> = {
+const authoredProfileQuestionBank: Record<LifeSituation, ExclusiveProfileQuestions> = {
   'dual-apprentice': {
     scenario: 'Mira probiert neben ihrem dualen Lernalltag ein kleines Fahrradprojekt aus. Alle Personen und Beträge sind erfunden.',
     questions: [
@@ -195,3 +196,47 @@ export const profileQuestionBank: Record<LifeSituation, ExclusiveProfileQuestion
     ],
   },
 }
+
+const legacyLessonIds = ['umsatz-gewinn', 'umsatz-gewinn', 'belege-und-kosten']
+
+const legacyCalculationOptions: Record<string, string[]> = {
+  'dual-bike-margin': ['95 €', '215 €', '310 €'],
+  'uni-card-margin': ['44 €', '28 €', '72 €'],
+  'employee-planter-margin': ['51 €', '45 €', '96 €'],
+  'founder-bag-margin': ['140 €', '90 €', '230 €'],
+}
+
+const replacedAuthoredQuestions: Record<LifeSituation, string[]> = {
+  'dual-apprentice': ['dual-bike-resale-plan', 'dual-material-receipt', 'dual-project-payment'],
+  university: ['uni-card-batch', 'uni-campus-fees', 'uni-campus-payment'],
+  employee: ['employee-planter-plan', 'employee-delivery-note', 'employee-invoice-timing'],
+  founder: ['founder-bag-batch', 'founder-packaging-record', 'founder-order-payment'],
+}
+
+function preserveLegacyQuestion(question: Question, lessonId: string): Question {
+  if (question.type === 'calculation') {
+    const { calculation: _calculation, ...base } = question
+    return {
+      ...base,
+      lessonId,
+      type: 'choice',
+      answers: legacyCalculationOptions[question.id],
+      correctAnswer: 0,
+      explanation: `${question.explanation} Die anderen Beträge sind die genannten Einzelwerte, nicht die Differenz.`,
+    }
+  }
+  return { ...question, lessonId }
+}
+
+export const profileQuestionBank: Record<LifeSituation, ExclusiveProfileQuestions> = Object.fromEntries(
+  (Object.keys(authoredProfileQuestionBank) as LifeSituation[]).map((lifeSituation) => {
+    const authored = authoredProfileQuestionBank[lifeSituation]
+    const legacy = profilePools[lifeSituation].questions.map((question, index) =>
+      preserveLegacyQuestion(question, legacyLessonIds[index]),
+    )
+    const additional = authored.questions.filter((question) =>
+      !replacedAuthoredQuestions[lifeSituation].includes(question.id),
+    )
+    return [lifeSituation, { ...authored, questions: [...legacy, ...additional] }]
+  }),
+) as Record<LifeSituation, ExclusiveProfileQuestions>

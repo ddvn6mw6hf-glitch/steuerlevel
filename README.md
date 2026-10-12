@@ -1,6 +1,6 @@
 # SteuerLevel
 
-SteuerLevel v4 ist ein deutschsprachiges Lernspiel mit sechs Lektionen auf drei Niveaustufen. Die spielbare typisierte Fragebank enthält 54 eindeutige konzeptionelle Fragen: zwölf gemeinsame Kernfragen, 24 profil-exklusive Fragen (sechs je Lebenssituation) und 18 Interessenfragen.
+SteuerLevel v4 ist ein deutschsprachiges Lernspiel mit sechs Lektionen auf drei Niveaustufen. Die spielbare typisierte Fragebank enthält 55 eindeutige konzeptionelle Fragen: 13 gemeinsame Kernfragen, 24 profil-exklusive Fragen (sechs je Lebenssituation) und 18 Interessenfragen. Vorhandene Profil- und Interessenfragen samt IDs wurden beibehalten.
 
 Beim optionalen Startprofil wählt man eine Altersgruppe, Lebenssituation und ein Lernthema. Diese Angaben wählen passende fiktive Beispiele und werden zusammen mit Steuerfunken und abgeschlossenem Lernfortschritt ausschließlich lokal im Browser gespeichert. Ältere XP-Gesamtstände werden bei der nächsten Ladung verlustfrei migriert. Steuerfunken sind Lernpunkte ohne Geldwert. Es gibt keine Konten, Analyse, externen APIs oder echten Steuerberechnungen.
 

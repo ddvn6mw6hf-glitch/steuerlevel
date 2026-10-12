@@ -1,6 +1,7 @@
 import type { MainInterest, Question } from './types'
+import { interestPools } from './interestPools'
 
-export const interestQuestionBank: Record<MainInterest, Question[]> = {
+const authoredInterestQuestions: Record<MainInterest, Question[]> = {
   salary: [
     {
       id: 'interest-salary-tax-purpose', lessonId: 'steuern-verstehen', type: 'choice',
@@ -54,7 +55,7 @@ export const interestQuestionBank: Record<MainInterest, Question[]> = {
       concept: 'Projektvorgänge nach Quelle sortieren', funken: 10,
     },
     {
-      id: 'interest-business-cash', lessonId: 'brutto-netto', type: 'choice',
+      id: 'interest-business-payment-separation', lessonId: 'brutto-netto', type: 'choice',
       prompt: 'Ein fiktiver Auftraggeber überweist den Betrag für ein Projekt getrennt von einer privaten Abrechnung. Was sollte in der Übersicht passieren?',
       answers: ['Die beiden Zahlungsvorgänge nach ihrer Quelle getrennt erfassen.', 'Beide als Nettolohn benennen.', 'Den Projektbetrag ohne Zahlungseingang als Kontostand notieren.'], correctAnswer: 0,
       explanation: 'Eine private Abrechnung und eine Projektzahlung haben unterschiedliche Kontexte. Die Zahlung sollte als Projektvorgang erfasst werden, sobald sie tatsächlich eingeht; sie ist nicht automatisch Lohn.',
@@ -134,3 +135,24 @@ export const interestQuestionBank: Record<MainInterest, Question[]> = {
     },
   ],
 }
+
+const legacyInterestLessons: Record<MainInterest, string[]> = {
+  salary: ['brutto-netto', 'umsatz-gewinn', 'geldfluss-und-entscheidungen'],
+  'side-business': ['belege-und-kosten', 'umsatz-gewinn', 'geldfluss-und-entscheidungen'],
+  everyday: ['belege-und-kosten', 'geldfluss-und-entscheidungen', 'ausgaben-steuerersparnis'],
+}
+
+export const interestQuestionBank: Record<MainInterest, Question[]> = Object.fromEntries(
+  (Object.keys(authoredInterestQuestions) as MainInterest[]).map((interest) => {
+    const legacy = interestPools[interest].map((question, index) => ({
+      ...question,
+      lessonId: legacyInterestLessons[interest][index],
+    }))
+    const legacyIds = new Set(legacy.map((question) => question.id))
+    const legacyLessonIds = new Set(legacy.map((question) => question.lessonId))
+    const newQuestions = authoredInterestQuestions[interest].filter((question) =>
+      !legacyIds.has(question.id) && !legacyLessonIds.has(question.lessonId ?? ''),
+    )
+    return [interest, [...legacy, ...newQuestions]]
+  }),
+) as Record<MainInterest, Question[]>

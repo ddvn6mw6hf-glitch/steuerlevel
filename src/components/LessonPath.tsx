@@ -1,8 +1,9 @@
-import { getLessonForPreferences, getProfileFitExplanation, orderLessonsByInterest } from '../learning/scenarios'
+import { getPersonalizedLearningPath, getProfileFitExplanation } from '../learning/scenarios'
 import type { LearningData } from '../learning/storage'
 import type { LearningPreferences, Lesson } from '../learning/types'
 import FunkenMark from './FunkenMark'
 import { difficultyLabels, objectiveLabels } from '../learning/labels'
+import { getLessonAvailability } from '../learning/progression'
 
 type Props = {
   data: LearningData
@@ -11,8 +12,8 @@ type Props = {
 }
 
 function LessonPath({ data, onChangeProfile, onStartLesson }: Props) {
-  const orderedLessons = orderLessonsByInterest(data.preferences)
-    .map((lesson) => getLessonForPreferences(lesson, data.preferences))
+  const orderedLessons = getPersonalizedLearningPath(data.preferences)
+  const availability = getLessonAvailability(orderedLessons, data.progress.completedLessonIds)
   const completedCount = data.progress.completedLessonIds.length
 
   return (
@@ -37,7 +38,9 @@ function LessonPath({ data, onChangeProfile, onStartLesson }: Props) {
 
       <section className="lesson-list" aria-label="Lektionen">
         {orderedLessons.map((lesson, index) => {
-          const complete = data.progress.completedLessonIds.includes(lesson.id)
+          const status = availability[index]
+          const complete = status === 'completed'
+          const locked = status === 'locked'
           const bestScore = data.progress.bestScores[lesson.id] ?? 0
           const availableFunken = lesson.questions.reduce(
             (sum, question) => sum + (data.progress.earnedQuestionIds.includes(question.id) ? 0 : question.funken),
@@ -49,19 +52,19 @@ function LessonPath({ data, onChangeProfile, onStartLesson }: Props) {
           const subjectLabels = objectives.slice(0, 3).map((objective) => objectiveLabels[objective]).join(' · ')
 
           return (
-            <button className={`lesson-row${complete ? ' lesson-complete' : ''}`} key={lesson.id} onClick={() => onStartLesson(lesson)}>
-              <span className="lesson-number">{complete ? <span aria-label="Abgeschlossen">✓</span> : `0${index + 1}`}</span>
+            <button className={`lesson-row${complete ? ' lesson-complete' : ''}${locked ? ' lesson-locked' : ''}`} key={lesson.id} onClick={() => onStartLesson(lesson)} disabled={locked} aria-disabled={locked}>
+              <span className="lesson-number">{complete ? <span aria-label="Abgeschlossen">✓</span> : locked ? '·' : `0${index + 1}`}</span>
               <span className="lesson-icon" aria-hidden="true">{lesson.icon}</span>
               <span className="lesson-details">
                 <span className="lesson-kicker">LEKTION 0{index + 1} <span>·</span> {lesson.questions.length} FRAGEN</span>
                 <strong>{lesson.title}</strong>
-                <small>{lesson.subtitle}</small>
+                <small>{lesson.topic} · {lesson.subtitle}</small>
                 <span className="lesson-tags"><span>{difficultyRange}</span><span>{subjectLabels}</span></span>
                 <span className="lesson-progress" aria-hidden="true"><i style={{ width: complete ? '100%' : '0%' }} /></span>
               </span>
               <span className="lesson-result">
-                <strong>{complete ? `${bestScore}/${lesson.questions.length} richtig` : `bis zu ${availableFunken} Steuerfunken`}</strong>
-                <span>{complete ? 'Erklärung jederzeit wiederholen' : 'In deinem Tempo'}</span>
+                <strong>{complete ? `${bestScore}/${lesson.questions.length} richtig` : locked ? 'Noch gesperrt' : `bis zu ${availableFunken} Steuerfunken`}</strong>
+                <span>{complete ? 'Erklärung jederzeit wiederholen' : locked ? 'Vorherige Lektion abschließen' : 'Jetzt spielbar · in deinem Tempo'}</span>
               </span>
               <span className="lesson-arrow" aria-hidden="true">→</span>
             </button>
