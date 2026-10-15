@@ -16,21 +16,29 @@ function createMemoryStorage() {
 }
 
 describe('Lernfortschritt lokal speichern', () => {
-  it('lädt Standardwerte und erhält nur Lernprofil sowie aggregierten Fortschritt', () => {
+  it('lädt Standardwerte und erhält Lernprofil, Punktestand und lokale Zusatzdaten', () => {
     const storage = createMemoryStorage()
     expect(loadLearningData(storage)).toEqual(createDefaultLearningData())
 
-    const saved = {
-      preferences: { ...defaultPreferences, mainInterest: 'salary' as const },
-      onboardingComplete: true,
-      progress: {
-        steuerfunken: 15,
-        earnedQuestionIds: ['salary-gross', 'founder-bag-sale'],
-        completedLessonIds: ['brutto-netto'],
-        bestScores: { 'brutto-netto': 2 },
-      },
+    const saved = createDefaultLearningData()
+    saved.preferences = { ...defaultPreferences, mainInterest: 'salary' }
+    saved.onboardingComplete = true
+    saved.progress.lifetimeEarned = 300
+    saved.progress.availableBalance = 50
+    saved.progress.earnedQuestionIds = ['salary-gross', 'founder-bag-sale']
+    saved.progress.completedLessonIds = ['brutto-netto']
+    saved.progress.bestScores = { 'brutto-netto': 2 }
+    saved.progress.purchasedRewardIds = ['steuerdetektiv-abzeichen']
+    saved.progress.purchaseHistory = [{
+      id: 'steuerdetektiv-abzeichen',
+      rewardId: 'steuerdetektiv-abzeichen',
+      price: 250,
+      purchasedAt: '2026-10-14T10:00:00.000Z',
+    }]
+    saved.progress.milestones = {
+      'foundations-test': { milestoneId: 'foundations-test', passed: false, passedAt: null },
     }
-    saveLearningData(saved, storage)
+    expect(saveLearningData(saved, storage)).toBe(true)
 
     expect(loadLearningData(storage)).toEqual(saved)
     expect(JSON.parse(storage.getItem(learningStorageKey) ?? '{}')).toEqual(saved)
@@ -58,19 +66,24 @@ describe('Lernfortschritt lokal speichern', () => {
         earnedQuestionIds: ['business-revenue', 'founder-bag-sale'],
         completedLessonIds: ['umsatz-gewinn'],
         bestScores: { 'umsatz-gewinn': 2 },
+        questionAttempts: [],
+        conceptReviews: {},
       },
     }))
 
     const migrated = loadLearningData(storage)
     const persisted = JSON.parse(storage.getItem(learningStorageKey) ?? '{}')
 
-    expect(migrated.progress.steuerfunken).toBe(45)
+    expect(migrated.progress.lifetimeEarned).toBe(45)
+    expect(migrated.progress.availableBalance).toBe(45)
     expect(migrated.progress.earnedQuestionIds).toEqual(['business-revenue', 'founder-bag-sale'])
     expect(migrated.progress.completedLessonIds).toEqual(['umsatz-gewinn'])
     expect(migrated.progress.completedLessonIds).not.toContain('steuern-verstehen')
     expect(migrated.progress.bestScores['umsatz-gewinn']).toBe(2)
     expect(persisted.progress).not.toHaveProperty('xp')
-    expect(persisted.progress.steuerfunken).toBe(45)
+    expect(persisted.progress).not.toHaveProperty('steuerfunken')
+    expect(persisted.progress.lifetimeEarned).toBe(45)
+    expect(persisted.progress.availableBalance).toBe(45)
   })
 
   it('behält migrierte Punkte auch wenn localStorage nicht beschreibbar ist', () => {
@@ -84,24 +97,45 @@ describe('Lernfortschritt lokal speichern', () => {
       setItem: () => { throw new Error('Storage is read-only') },
     }
 
-    expect(loadLearningData(readOnlyStorage).progress.steuerfunken).toBe(29)
+    expect(loadLearningData(readOnlyStorage).progress.lifetimeEarned).toBe(29)
+    expect(loadLearningData(readOnlyStorage).progress.availableBalance).toBe(29)
+    expect(saveLearningData(createDefaultLearningData(), readOnlyStorage)).toBe(false)
   })
 
   it('behält abgeschlossene Curriculum-IDs nach dem Speichern und erneuten Laden', () => {
     const storage = createMemoryStorage()
-    const saved = {
+    const saved = createDefaultLearningData()
+    saved.preferences = defaultPreferences
+    saved.onboardingComplete = true
+    saved.progress.lifetimeEarned = 20
+    saved.progress.availableBalance = 20
+    saved.progress.earnedQuestionIds = ['tax-common-purpose']
+    saved.progress.completedLessonIds = ['brutto-netto']
+    saved.progress.bestScores = { 'brutto-netto': 1 }
+
+    expect(saveLearningData(saved, storage)).toBe(true)
+    expect(loadLearningData(storage)).toEqual(saved)
+    expect(loadLearningData(storage).progress.completedLessonIds).not.toContain('steuern-verstehen')
+  })
+
+  it('migriert ältere Fortschritte ohne Fehlerverlauf und behält den vorhandenen Punktestand', () => {
+    const storage = createMemoryStorage()
+    storage.setItem(learningStorageKey, JSON.stringify({
       preferences: defaultPreferences,
       onboardingComplete: true,
       progress: {
-        steuerfunken: 20,
-        earnedQuestionIds: ['tax-common-purpose'],
+        steuerfunken: 65,
+        earnedQuestionIds: ['salary-gross'],
         completedLessonIds: ['brutto-netto'],
         bestScores: { 'brutto-netto': 1 },
       },
-    }
+    }))
 
-    saveLearningData(saved, storage)
-    expect(loadLearningData(storage)).toEqual(saved)
-    expect(loadLearningData(storage).progress.completedLessonIds).not.toContain('steuern-verstehen')
+    const migrated = loadLearningData(storage)
+    expect(migrated.progress.lifetimeEarned).toBe(65)
+    expect(migrated.progress.availableBalance).toBe(65)
+    expect(migrated.progress.completedLessonIds).toEqual(['brutto-netto'])
+    expect(migrated.progress.questionAttempts).toEqual([])
+    expect(migrated.progress.conceptReviews).toEqual({})
   })
 })

@@ -8,6 +8,114 @@ const conceptualReview = {
 
 export const lessons: Lesson[] = [
   {
+    id: 'wer-kassiert-hier-eigentlich', difficulty: 1, topic: 'Steuern im Alltag',
+    title: 'Wer kassiert hier eigentlich?', shortTitle: 'Steuern verstehen', subtitle: 'Steuern, Alltag und Beiträge unterscheiden', icon: '✦',
+    concepts: ['Steuern nach § 3 Abs. 1 AO', 'öffentliche Aufgaben', 'Steuern im Alltag', 'Einkommensteuer und Umsatzsteuer', 'Sozialversicherungsbeiträge'],
+    scenario: 'Fünf kurze Lernschritte zu Steuern und anderen Geldabgaben im Alltag.',
+    references: {
+      sources: [
+        { title: 'Abgabenordnung (AO), § 3 Abs. 1', url: 'https://www.gesetze-im-internet.de/ao_1977/__3.html' },
+        { title: 'Bundesministerium der Finanzen: Steuern', url: 'https://www.bundesfinanzministerium.de/Web/DE/Themen/Steuern/steuern.html' },
+      ],
+      verificationStatus: 'conceptual_unverified',
+      taxYear: null,
+    },
+    questions: [
+      {
+        id: 'intro-tax-definition', conceptId: 'tax-definition', lessonId: 'wer-kassiert-hier-eigentlich', type: 'choice',
+        teachingText: 'Eine Steuer ist Geld, das der Staat, ein Bundesland oder eine Gemeinde aufgrund eines Gesetzes verlangen kann. Damit bezahlt man keine ganz bestimmte Einzelleistung nur für sich. § 3 Absatz 1 der Abgabenordnung (AO) beschreibt außerdem: Steuern bringen Geld für öffentliche Haushalte ein; ein weiterer Zweck kann dazukommen.',
+        prompt: 'Robin vergleicht drei Zahlungen: Eintritt ins Schwimmbad, eine freiwillige Spende an die Bücherei und eine gesetzlich vorgesehene Zahlung in den allgemeinen Stadthaushalt, für die es keine einzelne persönliche Leistung gibt. Welche passt am ehesten zur Grundidee einer Steuer?',
+        answers: [
+          'Der Eintritt ins Schwimmbad.',
+          'Die freiwillige Spende an die Bücherei.',
+          'Die Zahlung, die das Gesetz für den Stadthaushalt vorsieht.',
+        ],
+        correctAnswer: 2,
+        explanation: 'Die dritte Zahlung passt am ehesten: Sie ist gesetzlich vorgesehen und geht in den Stadthaushalt. Eintritt ist der Preis für einen konkreten Besuch; die Spende ist freiwillig. Die vollständige gesetzliche Definition enthält weitere Einzelheiten.',
+        concept: 'Grunddefinition einer Steuer nach § 3 Abs. 1 AO', funken: 10,
+        difficulty: 1, objective: 'understand-purpose', retryOnIncorrect: true,
+        sources: [
+          { title: 'Abgabenordnung (AO), § 3 Abs. 1', url: 'https://www.gesetze-im-internet.de/ao_1977/__3.html' },
+          { title: 'Bundesministerium der Finanzen: Steuern', url: 'https://www.bundesfinanzministerium.de/Web/DE/Themen/Steuern/steuern.html' },
+        ],
+      },
+      {
+        id: 'intro-tax-purpose', conceptId: 'public-purpose-no-individual-return', lessonId: 'wer-kassiert-hier-eigentlich', type: 'choice',
+        teachingText: 'Der Staat braucht Geld für Aufgaben, die vielen Menschen zugutekommen, zum Beispiel Schulen, Straßen oder die Verwaltung. Steuern helfen, solche öffentlichen Aufgaben zu bezahlen. Eine einzelne Steuerzahlung wird dabei nicht einem persönlichen Konto gutgeschrieben und verspricht keine bestimmte Einzelleistung.',
+        prompt: 'Tariq nutzt die öffentliche Bücherei nie und möchte deshalb seine Steuerzahlung zurück. Welche Antwort passt am besten zur Grundidee gemeinsamer öffentlicher Aufgaben?',
+        answers: [
+          'Ja. Wer ein öffentliches Angebot nicht nutzt, erhält den dafür gedachten Teil der Steuer zurück.',
+          'Nein. Steuern tragen zu öffentlichen Aufgaben bei, ohne jeder Person ein bestimmtes Angebot als persönliche Gegenleistung zu versprechen.',
+          'Ja. Jede Steuerzahlung wird ausschließlich für die Angebote der zahlenden Person verwendet.',
+        ],
+        correctAnswer: 1,
+        explanation: 'Steuern helfen, Aufgaben für die Allgemeinheit zu finanzieren. Die Zahlung wird nicht für jede Person einem einzelnen Angebot zugeordnet; deshalb entsteht durch die Nichtnutzung der Bücherei kein persönlicher Rückzahlungsanspruch.',
+        concept: 'Steuern finanzieren öffentliche Aufgaben', funken: 10,
+        difficulty: 1, objective: 'understand-purpose', retryOnIncorrect: true,
+        sources: [
+          { title: 'Bundesministerium der Finanzen: Steuern', url: 'https://www.bundesfinanzministerium.de/Web/DE/Themen/Steuern/steuern.html' },
+        ],
+      },
+      {
+        id: 'intro-tax-everyday', conceptId: 'taxes-in-everyday-life', lessonId: 'wer-kassiert-hier-eigentlich', type: 'choice',
+        teachingText: 'Zwei Steuerarten begegnen vielen Menschen im Alltag: Die Einkommensteuer bezieht sich grundsätzlich auf Einkommen einer Person. Die Umsatzsteuer hängt grundsätzlich mit bestimmten verkauften Waren oder Leistungen zusammen und steckt bei vielen Einkäufen im Preis. Das sind die Grundideen; die genauen Regeln sind umfangreicher.',
+        prompt: 'Enna bekommt Geld für ihre Arbeit. Beim Einkauf zeigt ihr Kassenbon Umsatzsteuer. Welcher Hinweis gehört zu welchem Vorgang?',
+        answers: [
+          'Der Arbeitsverdienst ist der Bezugspunkt der Einkommensteuer; der Umsatzsteuer-Hinweis gehört zum Einkauf.',
+          'Der Arbeitsverdienst gehört zur Umsatzsteuer; der Kassenbon zur Einkommensteuer.',
+          'Beide Hinweise betreffen nur den Arbeitsverdienst.',
+        ],
+        correctAnswer: 0,
+        explanation: 'Hier geht es um zwei verschiedene Anknüpfungspunkte: Einkommensteuer betrifft grundsätzlich Einkommen; Umsatzsteuer bestimmte Verkäufe oder Leistungen. Bei vielen Einkäufen ist Umsatzsteuer im Preis enthalten. Das Beispiel entscheidet nicht, welche Steuer im Einzelfall anfällt.',
+        concept: 'Einkommensteuer und Umsatzsteuer im Alltag unterscheiden', funken: 15,
+        difficulty: 2, objective: 'distinguish-tax-types', retryOnIncorrect: true,
+        sources: [
+          { title: 'Einkommensteuergesetz (EStG), § 2', url: 'https://www.gesetze-im-internet.de/estg/__2.html' },
+          { title: 'Umsatzsteuergesetz (UStG), § 1', url: 'https://www.gesetze-im-internet.de/ustg_1980/__1.html' },
+          { title: 'Bundesministerium der Finanzen: Steuern', url: 'https://www.bundesfinanzministerium.de/Web/DE/Themen/Steuern/steuern.html' },
+        ],
+      },
+      {
+        id: 'intro-income-vat', conceptId: 'tax-vs-social-insurance-contribution', lessonId: 'wer-kassiert-hier-eigentlich', type: 'choice',
+        teachingText: 'Eine Sozialversicherungsabgabe ist ein Beitrag zu einem Versicherungssystem, zum Beispiel zur Renten- oder Krankenversicherung. Eine Steuer ist etwas anderes: Sie fließt grundsätzlich ohne eine bestimmte persönliche Einzelleistung in öffentliche Haushalte. Beide Arten von Abgaben können auf einer fiktiven Gehaltsübersicht auftauchen, gehören aber zu unterschiedlichen Systemen.',
+        prompt: 'Auf einer erfundenen Gehaltsübersicht von Ben stehen „Einkommensteuer“ und „Beitrag zur Krankenversicherung“. Welche Aussage beschreibt den Unterschied am besten?',
+        answers: [
+          'Die Einkommensteuer ist eine Steuer; der Krankenversicherungsbeitrag gehört zum Sozialversicherungssystem.',
+          'Beide Posten sind Steuern, die Ben eine bestimmte persönliche Einzelleistung garantieren.',
+          'Der Krankenversicherungsbeitrag ist Umsatzsteuer, weil er auf einer Gehaltsübersicht steht.',
+        ],
+        correctAnswer: 0,
+        explanation: 'Die Einkommensteuer ist eine Steuer. Ein Beitrag zur Krankenversicherung gehört dagegen zur Sozialversicherung und ihrem Regelwerk. Die beiden Posten sind also nicht bloß verschiedene Namen für dieselbe Abgabe; dieses Beispiel erklärt keine persönlichen Ansprüche oder Abzugshöhen.',
+        concept: 'Steuern und Sozialversicherungsbeiträge unterscheiden', funken: 15,
+        difficulty: 2, objective: 'distinguish-tax-types', retryOnIncorrect: true,
+        sources: [
+          { title: 'Abgabenordnung (AO), § 3 Abs. 1', url: 'https://www.gesetze-im-internet.de/ao_1977/__3.html' },
+          { title: 'Viertes Buch Sozialgesetzbuch (SGB IV), § 1', url: 'https://www.gesetze-im-internet.de/sgb_4/__1.html' },
+        ],
+      },
+      {
+        id: 'intro-tax-social-contributions', conceptId: 'mini-boss-tax-everyday-scenario', lessonId: 'wer-kassiert-hier-eigentlich', type: 'choice',
+        teachingText: 'Mini-Boss: Im Alltag können verschiedene Abgaben und Zahlungen dicht nebeneinanderstehen. Halte kurz inne und frage bei jedem Posten: Was löst ihn aus, zu welchem System gehört er und verspricht er eine bestimmte Einzelleistung? Ordne die Posten einzeln, statt alles in einen Topf zu werfen.',
+        prompt: 'Nora erhält Gehalt. Auf ihrer erfundenen Abrechnung stehen Einkommensteuer und ein Rentenversicherungsbeitrag. Danach kauft sie eine Lampe; auf dem Beleg ist Umsatzsteuer ausgewiesen. Welche Einordnung hält alle drei Posten auseinander?',
+        answers: [
+          'Einkommensteuer ist eine Steuer auf Einkommen, der Rentenversicherungsbeitrag gehört zur Sozialversicherung und Umsatzsteuer kann zum Lampenkauf gehören.',
+          'Einkommensteuer und Rentenversicherungsbeitrag sind beide Umsatzsteuer; die Umsatzsteuer auf dem Beleg ist Einkommensteuer.',
+          'Alle drei Posten sind Steuern, und jede einzelne Zahlung kauft Nora eine bestimmte persönliche öffentliche Leistung.',
+        ],
+        correctAnswer: 0,
+        explanation: 'Die drei Posten haben unterschiedliche Rollen: Einkommensteuer knüpft grundsätzlich an Einkommen an, ein Rentenversicherungsbeitrag gehört zum Sozialversicherungssystem, und Umsatzsteuer kann mit einem Einkauf zusammenhängen. Steuern helfen, öffentliche Aufgaben gemeinsam zu finanzieren; keine dieser Aussagen berechnet Noras persönliche Abgaben.',
+        concept: 'Mini-Boss: Abgaben im fiktiven Alltag sortieren', funken: 20,
+        difficulty: 3, objective: 'reason-from-scenario', retryOnIncorrect: true,
+        sources: [
+          { title: 'Abgabenordnung (AO), § 3 Abs. 1', url: 'https://www.gesetze-im-internet.de/ao_1977/__3.html' },
+          { title: 'Einkommensteuergesetz (EStG), § 2', url: 'https://www.gesetze-im-internet.de/estg/__2.html' },
+          { title: 'Umsatzsteuergesetz (UStG), § 1', url: 'https://www.gesetze-im-internet.de/ustg_1980/__1.html' },
+          { title: 'Viertes Buch Sozialgesetzbuch (SGB IV), § 1', url: 'https://www.gesetze-im-internet.de/sgb_4/__1.html' },
+        ],
+      },
+    ],
+  },
+  {
     id: 'steuern-verstehen', difficulty: 1, topic: 'Steuern und Geldquellen',
     title: 'Steuern im Überblick', shortTitle: 'Steuern verstehen',
     subtitle: 'Gemeinsame Aufgaben und Geldquellen auseinanderhalten', icon: '◎',

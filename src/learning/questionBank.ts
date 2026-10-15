@@ -1,6 +1,7 @@
 import { lessons } from './curriculum'
 import { interestQuestionBank } from './interestQuestionBank'
 import { profileQuestionBank } from './profileQuestionBank'
+import { getAnswerIds } from './answerChoices'
 import type {
   DifficultyTier,
   LearningObjective,
@@ -40,10 +41,26 @@ function createEntry(
   interest: QuestionTags['interest'],
   difficulty = lessonDifficulty(lessonId),
 ): QuestionBankEntry {
-  const objective = inferObjective(question)
+  const objective = question.objective ?? inferObjective(question)
+  const answerIds = question.type === 'choice' ? getAnswerIds(question) : undefined
   return {
-    question: { ...question, lessonId },
-    tags: { lessonId, lifeSituation, interest, difficulty, objective, ...conceptualReview },
+    question: {
+      ...question,
+      lessonId,
+      ...(answerIds && {
+        answerIds,
+        correctAnswerId: answerIds[question.correctAnswer],
+      }),
+    },
+    tags: {
+      lessonId,
+      lifeSituation,
+      interest,
+      difficulty: question.difficulty ?? difficulty,
+      objective,
+      ...conceptualReview,
+      sources: question.sources ?? conceptualReview.sources,
+    },
   }
 }
 
@@ -94,8 +111,16 @@ export function selectQuestionsForPreferences(
   )
 
   const uniqueById = new Map(selected.map((entry) => [entry.question.id, entry]))
+  const curriculumOrder = new Map(lesson.questions.map((question, index) => [question.id, index]))
   return [...uniqueById.values()]
-    .sort((left, right) => left.tags.difficulty - right.tags.difficulty || left.question.id.localeCompare(right.question.id))
+    .sort((left, right) => {
+      const difficultyOrder = left.tags.difficulty - right.tags.difficulty
+      if (difficultyOrder !== 0) return difficultyOrder
+
+      const leftCurriculumOrder = curriculumOrder.get(left.question.id) ?? Number.MAX_SAFE_INTEGER
+      const rightCurriculumOrder = curriculumOrder.get(right.question.id) ?? Number.MAX_SAFE_INTEGER
+      return leftCurriculumOrder - rightCurriculumOrder || left.question.id.localeCompare(right.question.id)
+    })
     .map((entry) => ({ ...entry.question, tags: entry.tags }))
 }
 

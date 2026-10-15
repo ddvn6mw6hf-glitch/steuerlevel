@@ -16,7 +16,7 @@ describe('Profilbasierter Lernpfad', () => {
   it('enthält mindestens 36 eindeutige spielbare Fragen mit je 3–4 Antworten', () => {
     const ids = questionBank.map(({ question }) => question.id)
     expect(new Set(ids).size).toBeGreaterThanOrEqual(36)
-    expect(questionBank).toHaveLength(55)
+    expect(questionBank).toHaveLength(60)
     expect(questionBank.every(({ question }) =>
       question.type === 'choice' &&
       question.answers.length >= 3 && question.answers.length <= 4 &&
@@ -84,13 +84,13 @@ describe('Profilbasierter Lernpfad', () => {
     expect(new Set(selections.map((questions) => questions.map((question) => question.concept).join('|'))).size).toBe(3)
   })
 
-  it('liefert sechs Lektionen mit je vier Fragen und ohne Duplikate im Lernpfad', () => {
+  it('liefert sieben Lektionen mit vier bis fünf Fragen und ohne Duplikate im Lernpfad', () => {
     profiles.forEach((lifeSituation) => {
       interests.forEach((mainInterest) => {
         const path = getPersonalizedLearningPath({ ...defaultPreferences, lifeSituation, mainInterest })
         const ids = path.flatMap((lesson) => lesson.questions.map((question) => question.id))
 
-        expect(path).toHaveLength(6)
+        expect(path).toHaveLength(7)
         expect(path.every((lesson) => lesson.questions.length >= 4 && lesson.questions.length <= 5)).toBe(true)
         expect(new Set(ids).size).toBe(ids.length)
       })
@@ -98,17 +98,20 @@ describe('Profilbasierter Lernpfad', () => {
   })
 
   it('sortiert in zwei Lektionen je Stufe von Newbie bis Steuerstratege', () => {
-    expect(lessons.map((lesson) => lesson.difficulty)).toEqual([1, 1, 2, 2, 3, 3])
+    expect(lessons.map((lesson) => lesson.difficulty)).toEqual([1, 1, 1, 2, 2, 3, 3])
     expect(difficultyLabels).toEqual({ 1: 'Steuer-Newbie', 2: 'Durchblicker', 3: 'Steuerstratege' })
     const path = getPersonalizedLearningPath(defaultPreferences)
-    expect(path.map((lesson) => lesson.difficulty)).toEqual([1, 1, 2, 2, 3, 3])
-    expect(path.every((lesson) => lesson.questions.every((question) => question.tags?.difficulty === lesson.difficulty))).toBe(true)
+    expect(path.map((lesson) => lesson.difficulty)).toEqual([1, 1, 1, 2, 2, 3, 3])
+    expect(path[0].questions.map((question) => question.tags?.difficulty)).toEqual([1, 1, 2, 2, 3])
+    expect(path.slice(1).every((lesson) => lesson.questions.every((question) => question.tags?.difficulty === lesson.difficulty))).toBe(true)
   })
 
   it('ändert mit dem Alter nur die fiktive Szene, nicht Fragen oder steuerliche Einordnung', () => {
     const young = { ...defaultPreferences, ageGroup: '18-24' as const }
     const older = { ...defaultPreferences, ageGroup: '35+' as const }
-    expect(getFictionalScenario(young, lessons[0])).not.toBe(getFictionalScenario(older, lessons[0]))
+    const existingLesson = lessons.find((lesson) => lesson.id === 'steuern-verstehen')
+    expect(existingLesson).toBeDefined()
+    expect(getFictionalScenario(young, existingLesson!)).not.toBe(getFictionalScenario(older, existingLesson!))
     expect(getPersonalizedLearningPath(young).flatMap((lesson) => lesson.questions.map((question) => question.id)))
       .toEqual(getPersonalizedLearningPath(older).flatMap((lesson) => lesson.questions.map((question) => question.id)))
   })
@@ -117,7 +120,7 @@ describe('Profilbasierter Lernpfad', () => {
     const oldCompleted = ['brutto-netto', 'umsatz-gewinn', 'ausgaben-steuerersparnis']
     const newLessonIds = lessons.filter((lesson) => !oldCompleted.includes(lesson.id)).map((lesson) => lesson.id)
     expect(lessons.filter((lesson) => oldCompleted.includes(lesson.id))).toHaveLength(3)
-    expect(newLessonIds).toEqual(['steuern-verstehen', 'belege-und-kosten', 'geldfluss-und-entscheidungen'])
+    expect(newLessonIds).toEqual(['wer-kassiert-hier-eigentlich', 'steuern-verstehen', 'belege-und-kosten', 'geldfluss-und-entscheidungen'])
     expect(newLessonIds.some((id) => oldCompleted.includes(id))).toBe(false)
   })
 
@@ -131,9 +134,13 @@ describe('Profilbasierter Lernpfad', () => {
       entry.applicableTaxYear === null &&
       !playableIds.has(entry.question.id),
     )).toBe(true)
-    expect(questionBank.every(({ tags }) =>
-      tags.verificationStatus === 'conceptual_unverified' && tags.sources.length === 0 && tags.taxYear === null,
+    expect(questionBank.every(({ tags, question }) =>
+      tags.verificationStatus === 'conceptual_unverified' &&
+      tags.sources.length === (question.id.startsWith('intro-') ? question.sources?.length : 0) &&
+      tags.taxYear === null,
     )).toBe(true)
+    expect(questionBank.filter(({ question }) => question.id.startsWith('intro-')))
+      .toHaveLength(5)
   })
 
   it('erklärt die Profilpassung und gibt einen Entwicklerbericht mit IDs und Themen aus', () => {

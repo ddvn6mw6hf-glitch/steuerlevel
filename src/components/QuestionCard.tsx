@@ -4,22 +4,27 @@ import type { Question, QuestionResponse } from '../learning/types'
 import { getAnswerFeedback } from '../learning/feedback'
 import FunkenMark from './FunkenMark'
 import { difficultyLabels, objectiveLabels } from '../learning/labels'
+import { getAnswerChoices } from '../learning/answerChoices'
+import { getQuestionHint } from '../learning/pedagogy'
 
 type Props = {
   question: Question
   questionNumber: number
   questionCount: number
   response: QuestionResponse | null
-  onAnswer: (value: number) => void
+  onAnswer: (value: number | string) => void
   onContinue: () => void
+  contextLabel?: string
 }
 
-function QuestionCard({ question, questionNumber, questionCount, response, onAnswer, onContinue }: Props) {
+function QuestionCard({ question, questionNumber, questionCount, response, onAnswer, onContinue, contextLabel }: Props) {
   const [calculationValue, setCalculationValue] = useState('')
+  const [hintOpen, setHintOpen] = useState(false)
   const questionRef = useRef<HTMLHeadingElement>(null)
   const feedbackRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    setHintOpen(false)
     if (response) feedbackRef.current?.focus()
     else questionRef.current?.focus()
   }, [question.id, response])
@@ -40,6 +45,7 @@ function QuestionCard({ question, questionNumber, questionCount, response, onAns
       <div className="progress-track question-progress" role="progressbar" aria-label="Fortschritt in dieser Lektion" aria-valuemin={0} aria-valuemax={questionCount} aria-valuenow={questionNumber - 1}>
         <span style={{ width: `${((questionNumber - 1) / questionCount) * 100}%` }} />
       </div>
+      {contextLabel && <p className="question-context-label">{contextLabel}</p>}
       {question.tags && (
         <div className="question-taxonomy">
           <span>{difficultyLabels[question.tags.difficulty]}</span>
@@ -47,6 +53,14 @@ function QuestionCard({ question, questionNumber, questionCount, response, onAns
         </div>
       )}
       <h2 className="question-title" ref={questionRef} tabIndex={-1}>{question.prompt}</h2>
+      {!response && (
+        <div className="question-hint">
+          <button className="text-button" aria-expanded={hintOpen} onClick={() => setHintOpen((open) => !open)}>
+            {hintOpen ? 'Tipp ausblenden' : 'Tipp anzeigen'}
+          </button>
+          {hintOpen && <p>{getQuestionHint(question)}</p>}
+        </div>
+      )}
 
       {question.type === 'calculation' && question.calculation && (
         <div className="calculation-panel">
@@ -62,7 +76,7 @@ function QuestionCard({ question, questionNumber, questionCount, response, onAns
             ))}
             <span className="calculation-equals" aria-hidden="true">=</span>
             {response ? (
-              <span className="calculation-result"><small>Dein Ergebnis</small><strong>{new Intl.NumberFormat('de-DE').format(response.value)} €</strong></span>
+              <span className="calculation-result"><small>Dein Ergebnis</small><strong>{new Intl.NumberFormat('de-DE').format(Number(response.value))} €</strong></span>
             ) : (
               <label className="calculation-input-wrap">
                 <small>Dein Ergebnis</small>
@@ -75,9 +89,9 @@ function QuestionCard({ question, questionNumber, questionCount, response, onAns
 
       {question.type === 'choice' && (
         <div className="answer-list answer-list-large">
-          {question.answers.map((answer, index) => {
-            const selected = response?.value === index
-            const correct = isCorrectAnswer(question, index)
+          {getAnswerChoices(question).map((answer, index) => {
+            const selected = response?.value === answer.id
+            const correct = isCorrectAnswer(question, answer.id)
             const resultClass = response
               ? correct ? ' answer-correct' : selected ? ' answer-incorrect' : ''
               : ''
@@ -86,11 +100,11 @@ function QuestionCard({ question, questionNumber, questionCount, response, onAns
                 aria-pressed={selected}
                 className={`answer-option${resultClass}${selected ? ' answer-selected' : ''}`}
                 aria-disabled={response !== null}
-                key={answer}
-                onClick={() => { if (!response) onAnswer(index) }}
+                key={answer.id}
+                onClick={() => { if (!response) onAnswer(answer.id) }}
               >
                 <span className="answer-letter">{String.fromCharCode(65 + index)}</span>
-                <span>{answer}</span>
+                <span>{answer.text}</span>
                 {response && correct && <span className="answer-check" aria-label="Richtig">✓</span>}
                 {response && selected && !correct && <span className="answer-check" aria-label="Deine Auswahl">×</span>}
                 {response?.correct && selected && response.funkenAwarded > 0 && (
@@ -113,7 +127,7 @@ function QuestionCard({ question, questionNumber, questionCount, response, onAns
           {response.correct ? (
             <div ref={feedbackRef} tabIndex={-1} className="answer-feedback answer-feedback-correct">
               <div className="answer-feedback-orbit" aria-hidden="true">✦</div>
-              <p className="answer-feedback-kicker">GEDANKE GETROFFEN</p>
+              <p className="answer-feedback-kicker">RICHTIG BEANTWORTET</p>
               <strong className="answer-feedback-title">{getAnswerFeedback(question, true).headline}</strong>
               <span className="answer-feedback-reward">
                 {response.funkenAwarded > 0
@@ -124,12 +138,14 @@ function QuestionCard({ question, questionNumber, questionCount, response, onAns
           ) : (
             <div ref={feedbackRef} tabIndex={-1} className="answer-feedback answer-feedback-wrong">
               <span className="answer-feedback-orbit" aria-hidden="true">↗</span>
-              <p className="answer-feedback-kicker">GUTER FUND IM LERNMODUS</p>
-              <strong className="answer-feedback-title">Steuerfalle entdeckt.</strong>
-              <span className="answer-feedback-subtitle">Kein Abzug. Schau auf den entscheidenden Unterschied:</span>
+              <p className="answer-feedback-kicker">NOCH EIN SCHRITT ZUM DURCHBLICK</p>
+              <strong className="answer-feedback-title">{getAnswerFeedback(question, false).headline}</strong>
+              <span className="answer-feedback-subtitle">Die richtige Antwort ist jetzt markiert. Hier ist der entscheidende Unterschied:</span>
             </div>
           )}
-          <p className="answer-feedback-explanation">{getAnswerFeedback(question, response.correct).detail}</p>
+          <p className="answer-feedback-explanation">
+            {getAnswerFeedback(question, response.correct).detail}
+          </p>
           <button className="primary-button continue-button" onClick={onContinue}>
             {questionNumber === questionCount ? 'Zur Zusammenfassung' : 'Weiter'}
             <span aria-hidden="true">→</span>

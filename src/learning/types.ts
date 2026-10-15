@@ -30,12 +30,19 @@ export type Calculation = {
 
 type QuestionBase = {
   id: string
+  conceptId?: string
   lessonId?: string
   prompt: string
+  teachingText?: string
   explanation: string
   concept: string
   funken: number
+  difficulty?: DifficultyTier
+  objective?: LearningObjective
+  retryOnIncorrect?: boolean
   answers: string[]
+  answerIds?: string[]
+  correctAnswerId?: string
   calculation?: Calculation
   sources?: LearningSource[]
   tags?: QuestionTags
@@ -88,7 +95,7 @@ export type Lesson = {
 }
 
 export type QuestionResponse = {
-  value: number
+  value: number | string
   correct: boolean
   funkenAwarded: number
 }
@@ -103,4 +110,56 @@ export type QuizSession = {
   questionIndex: number
   responses: Array<QuestionResponse | null>
   earnedFunken: number
+}
+
+export type ReviewStatus = 'needs-practice' | 'scheduled' | 'strengthened' | 'clear'
+
+export type QuestionAttempt = {
+  questionId: string
+  conceptId: string
+  correct: boolean
+  attemptedAt: string
+  attemptNumber: number
+  isReview: boolean
+  repeatStatus: ReviewStatus
+  lastPracticedAt: string
+}
+
+export type ConceptReview = {
+  conceptId: string
+  attempts: number
+  correctReviewCount: number
+  lastAttemptAt: string
+  lastReviewedAt: string | null
+  nextDueAt: string | null
+  status: ReviewStatus
+  lastQuestionId: string
+}
+
+export type ReviewTask = {
+  conceptId: string
+  question: Question
+  isAlternative: boolean
+}
+
+export type MilestoneRecord = {
+  milestoneId: string
+  passed: boolean
+  passedAt: string | null
+}
+
+export type LearningCertificate = {
+  milestoneId: string
+  issuedAt: string
+  label: string
+  officialRecognition: false
+}
+
+export type RewardId = 'golden-funkenbeutel' | 'steuerdetektiv-abzeichen' | 'papierkram-endgegner'
+
+export type RewardPurchase = {
+  id: RewardId
+  rewardId: RewardId
+  price: number
+  purchasedAt: string
 }

@@ -53,9 +53,9 @@ const profileTopics: Record<LearningPreferences['lifeSituation'], Record<string,
 }
 
 const interestLessonOrder: Record<LearningPreferences['mainInterest'], string[]> = {
-  'side-business': ['umsatz-gewinn', 'belege-und-kosten', 'geldfluss-und-entscheidungen', 'steuern-verstehen', 'brutto-netto', 'ausgaben-steuerersparnis'],
-  salary: ['brutto-netto', 'steuern-verstehen', 'geldfluss-und-entscheidungen', 'umsatz-gewinn', 'belege-und-kosten', 'ausgaben-steuerersparnis'],
-  everyday: ['steuern-verstehen', 'belege-und-kosten', 'ausgaben-steuerersparnis', 'brutto-netto', 'umsatz-gewinn', 'geldfluss-und-entscheidungen'],
+  'side-business': ['wer-kassiert-hier-eigentlich', 'umsatz-gewinn', 'belege-und-kosten', 'geldfluss-und-entscheidungen', 'steuern-verstehen', 'brutto-netto', 'ausgaben-steuerersparnis'],
+  salary: ['wer-kassiert-hier-eigentlich', 'brutto-netto', 'steuern-verstehen', 'geldfluss-und-entscheidungen', 'umsatz-gewinn', 'belege-und-kosten', 'ausgaben-steuerersparnis'],
+  everyday: ['wer-kassiert-hier-eigentlich', 'steuern-verstehen', 'belege-und-kosten', 'ausgaben-steuerersparnis', 'brutto-netto', 'umsatz-gewinn', 'geldfluss-und-entscheidungen'],
 }
 
 export function orderLessonsByInterest(

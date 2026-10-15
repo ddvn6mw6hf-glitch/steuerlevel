@@ -5,13 +5,14 @@ import { getCelebrationLine, getCelebrationLineCount } from '../learning/celebra
 import { lessons } from '../learning/content'
 import { defaultPreferences } from '../learning/scenarios'
 import { createQuizSession, submitAnswer, advanceSession } from '../quiz'
+import { getCorrectAnswerId } from '../learning/answerChoices'
 
 describe('Feieransicht', () => {
   it('zeigt die tatsächliche Session-Belohnung und eine zugängliche, nicht-modale Weiter-Aktion', () => {
     const lesson = lessons[0]
     let session = createQuizSession(lesson)
     for (const question of lesson.questions) {
-      session = submitAnswer(session, question, question.correctAnswer, []).session
+      session = submitAnswer(session, question, getCorrectAnswerId(question), []).session
       session = advanceSession(session, lesson) ?? session
     }
 

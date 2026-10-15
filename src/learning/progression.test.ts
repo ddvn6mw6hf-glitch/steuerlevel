@@ -7,11 +7,11 @@ describe('Progressiver Lernpfad', () => {
   it('öffnet zunächst nur den ersten Schritt und danach jeweils genau den nächsten', () => {
     const path = getPersonalizedLearningPath(defaultPreferences)
     expect(getLessonAvailability(path, [])).toEqual([
-      'current', 'locked', 'locked', 'locked', 'locked', 'locked',
+      'current', 'locked', 'locked', 'locked', 'locked', 'locked', 'locked',
     ])
 
     expect(getLessonAvailability(path, [path[0].id])).toEqual([
-      'completed', 'current', 'locked', 'locked', 'locked', 'locked',
+      'completed', 'current', 'locked', 'locked', 'locked', 'locked', 'locked',
     ])
     expect(getNextLesson(path, [path[0].id])?.id).toBe(path[1].id)
   })
@@ -33,7 +33,7 @@ describe('Progressiver Lernpfad', () => {
 
     expect(lessons.filter((_, index) => access[index] === 'completed').map((lesson) => lesson.id))
       .toEqual(legacyCompleted)
-    expect(lessons.find((_, index) => access[index] === 'current')?.id).toBe('steuern-verstehen')
+    expect(lessons.find((_, index) => access[index] === 'current')?.id).toBe('wer-kassiert-hier-eigentlich')
   })
 
   it('lässt nach Abschluss aller Schritte alle Lektionen für Replay offen', () => {

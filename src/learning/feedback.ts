@@ -5,62 +5,96 @@ type FeedbackCopy = { headline: string; detail: string }
 const feedbackByConcept: Record<string, { correct: string[]; incorrect: string[] }> = {
   sales: {
     correct: [
-      'Kassenbon-Klarheit: Der Verkauf zählt zum Umsatz. ✨',
-      'Umsatz sitzt. Dein Taschenrechner darf kurz durchatmen. 🧮',
-      'Sauber sortiert: Verkaufserlös ist noch nicht der Gewinn. 💡',
+      'STEUERFALLE ENTSCHÄRFT! 💥',
+      'Dein Zukunfts-Ich feiert dich! 😎',
+      'Das Finanzamt hat einen neuen Endgegner: deinen Durchblick.',
+      'Mehr Durchblick, weniger Steuerchaos!',
     ],
     incorrect: [
-      'Kleiner Perspektivwechsel: Umsatz zählt den Verkauf, nicht das, was nach Kosten übrig bleibt.',
-      'Der Verkaufspreis ist erst der Anfang der Rechnung. Kosten kommen danach ins Bild.',
-      'Fast am Ziel: Trenne zuerst den Verkaufserlös von den Ausgaben.',
+      'UPS! STEUERFALLE! 🫣',
+      'Autsch, da hat dich die Bürokratie kurz ausgetrickst.',
+      'Kein Drama. Jetzt weißt du, worauf es ankommt.',
+      'Auch Steuerprofis haben mal klein angefangen.',
     ],
   },
   costs: {
     correct: [
-      'Kosten im Blick, Ergebnis im Griff. 🎯',
-      'Gute Rechnung: Kosten knabbern am Überschuss, nicht am Verkaufspreis. 🧾',
-      'Taschenrechner nickt anerkennend. Das passiert nicht oft. 🧮',
+      'STEUERFALLE ENTSCHÄRFT! 💥',
+      'Dein Zukunfts-Ich feiert dich! 😎',
+      'Das Finanzamt hat einen neuen Endgegner: deinen Durchblick.',
+      'Mehr Durchblick, weniger Steuerchaos!',
     ],
     incorrect: [
-      'Der hilfreiche Dreh: Kosten verändern den Überschuss, nicht den ursprünglichen Verkauf.',
-      'Denk an zwei Spalten: Verkäufe hier, Kosten dort. Erst danach vergleichst du sie.',
-      'Nicht der Verkauf ändert sich, sondern das, was nach den Kosten übrig bleibt.',
+      'UPS! STEUERFALLE! 🫣',
+      'Autsch, da hat dich die Bürokratie kurz ausgetrickst.',
+      'Kein Drama. Jetzt weißt du, worauf es ankommt.',
+      'Auch Steuerprofis haben mal klein angefangen.',
     ],
   },
   salary: {
     correct: [
-      'Brutto vor, Netto nach den Beispiel-Abzügen. Sitzt! 🎯',
-      'Abrechnungs-Kompass aktiviert. 🧭',
-      'Das passt: Du hast genau auf die gezeigten Abzüge geschaut. 🔎',
+      'STEUERFALLE ENTSCHÄRFT! 💥',
+      'Dein Zukunfts-Ich feiert dich! 😎',
+      'Das Finanzamt hat einen neuen Endgegner: deinen Durchblick.',
+      'Mehr Durchblick, weniger Steuerchaos!',
     ],
     incorrect: [
-      'Auf der Beispielabrechnung liegt Brutto vor den aufgeführten Abzügen, Netto danach.',
-      'Hier hilft die Reihenfolge: erst Brutto, dann die angenommenen Abzüge, dann Netto.',
-      'Schau auf die Rechenschritte der Beispielabrechnung, nicht auf einen pauschalen Betrag.',
+      'UPS! STEUERFALLE! 🫣',
+      'Autsch, da hat dich die Bürokratie kurz ausgetrickst.',
+      'Kein Drama. Jetzt weißt du, worauf es ankommt.',
+      'Auch Steuerprofis haben mal klein angefangen.',
     ],
   },
   cash: {
     correct: [
-      'Geldfluss mit Weitblick: Zahlung und mögliche Entlastung bleiben getrennt. 🌊',
-      'Gut sortiert: Eine Ausgabe bleibt erst einmal ein Geldabfluss. 🧾',
-      'Finanzblick sitzt: möglich heißt nicht garantiert. 🔎',
+      'STEUERFALLE ENTSCHÄRFT! 💥',
+      'Dein Zukunfts-Ich feiert dich! 😎',
+      'Das Finanzamt hat einen neuen Endgegner: deinen Durchblick.',
+      'Mehr Durchblick, weniger Steuerchaos!',
     ],
     incorrect: [
-      'Wichtige Trennung: Die Ausgabe kostet Geld; eine mögliche Entlastung ist weder sicher noch gleich hoch.',
-      'Eine Ausgabe ist keine Erstattung. Eine mögliche spätere Wirkung bleibt ein eigener, unsicherer Schritt.',
-      'Sortiere erst den echten Geldabfluss und dann eine mögliche steuerliche Wirkung.',
+      'UPS! STEUERFALLE! 🫣',
+      'Autsch, da hat dich die Bürokratie kurz ausgetrickst.',
+      'Kein Drama. Jetzt weißt du, worauf es ankommt.',
+      'Auch Steuerprofis haben mal klein angefangen.',
+    ],
+  },
+  tax: {
+    correct: [
+      'ABGABEN-DURCHBLICK FREIGESCHALTET! ✨',
+      'Sauber sortiert – der Steuerknoten wird kleiner!',
+      'Volltreffer: Du trennst jetzt die Geldposten!',
+    ],
+    incorrect: [
+      'Fast sortiert – schau noch einmal auf den Anlass.',
+      'Kleiner Steuerknoten! Die Begründung hilft dir beim Entwirren.',
+      'Kein Drama: Bei Abgaben kommt es darauf an, wozu sie gehören.',
+    ],
+  },
+  records: {
+    correct: [
+      'BELEG-DURCHBLICK! Der Papierkram ist sortiert. 🧾',
+      'Sauber notiert – dein Zukunfts-Ich findet das wieder!',
+      'Aha! Ein bisschen Kontext macht den Beleg lesbar.',
+    ],
+    incorrect: [
+      'Fast gefunden! Ein Beleg braucht den passenden Anlass.',
+      'Kein Drama: Ergänze, wozu der Beleg gehört.',
+      'Der Beleg ist kein Orakel – der Vorgang zählt dazu.',
     ],
   },
   profit: {
     correct: [
-      'Überschuss gefunden. Weitere Kosten könnten das Ergebnis noch verändern.',
-      'Rechenschritt sitzt: Das Ergebnis gilt vor den noch nicht berücksichtigten Kosten.',
-      'Gute Zwischenbilanz: Du hast Erlöse und Kosten sauber verglichen.',
+      'STEUERFALLE ENTSCHÄRFT! 💥',
+      'Dein Zukunfts-Ich feiert dich! 😎',
+      'Das Finanzamt hat einen neuen Endgegner: deinen Durchblick.',
+      'Mehr Durchblick, weniger Steuerchaos!',
     ],
     incorrect: [
-      'Ein Überschuss entsteht erst, wenn du die genannten Kosten vom Verkaufserlös abziehst.',
-      'Rechne Erlöse minus Kosten. Das Ergebnis bleibt ein Zwischenstand, falls weitere Kosten dazukommen.',
-      'Hier zählt die Differenz zwischen Verkauf und Kosten, nicht eine mögliche Steuerwirkung.',
+      'UPS! STEUERFALLE! 🫣',
+      'Autsch, da hat dich die Bürokratie kurz ausgetrickst.',
+      'Kein Drama. Jetzt weißt du, worauf es ankommt.',
+      'Auch Steuerprofis haben mal klein angefangen.',
     ],
   },
 }
@@ -70,13 +104,17 @@ const learningMomentByConcept: Record<keyof typeof feedbackByConcept, string> = 
   costs: 'Kosten mindern den Überschuss, sie ändern nicht rückwirkend den Verkauf.',
   salary: 'Brutto steht vor den gezeigten Abzügen, Netto danach.',
   cash: 'Eine Ausgabe und eine mögliche Steuerwirkung sind getrennte Geldbewegungen.',
+  tax: 'Achte darauf, wodurch die Zahlung entsteht und ob sie zu einer Steuer oder einem Versicherungssystem gehört.',
+  records: 'Ein Beleg wird mit Anlass und Vorgang nachvollziehbar; er verspricht keine Rückzahlung.',
   profit: 'Vergleiche Erlöse und Kosten; weitere Kosten können das Ergebnis noch ändern.',
 }
 
 function getConceptGroup(question: Question): keyof typeof feedbackByConcept {
   const description = `${question.id} ${question.concept}`.toLowerCase()
   if (/brutto|netto|abrechnung|abzug|salary/.test(description)) return 'salary'
-  if (/steuer|cash|flow|geldfluss|geldzufluss|zahlung|refund|ausgabe|entlastung|spending|expense/.test(description)) return 'cash'
+  if (/intro-tax|intro-income|steuer|sozialversicherung|rentenversicherung|krankenversicherung/.test(description)) return 'tax'
+  if (/cash|flow|geldfluss|geldzufluss|zahlung|refund|ausgabe|entlastung|spending|expense/.test(description)) return 'cash'
+  if (/beleg|dokument|receipt|record|papierkram/.test(description)) return 'records'
   if (/kosten|material|delivery|fees|repair|packaging/.test(description)) return 'costs'
   if (/umsatz|verkauf|sale|revenue/.test(description)) return 'sales'
   return 'profit'

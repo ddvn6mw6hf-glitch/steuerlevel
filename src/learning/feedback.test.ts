@@ -9,8 +9,8 @@ describe('Konzeptbezogenes Feedback', () => {
     const sale = profilePools['dual-apprentice'].questions[0]
     const costs = profilePools['dual-apprentice'].questions[2]
 
-    expect(getAnswerFeedback(sale, false).headline).toMatch(/Umsatz|Verkauf|Verkaufserlös/)
-    expect(getAnswerFeedback(costs, false).headline).toMatch(/Kosten|Überschuss|Spalten/)
+    expect(getAnswerFeedback(sale, false).detail).toMatch(/Umsatz|Verkauf|Verkaufserlös/)
+    expect(getAnswerFeedback(costs, false).detail).toMatch(/Kosten|Überschuss|Spalten/)
   })
 
   it('bietet unterschiedliche, deterministische positive Rückmeldungen', () => {
@@ -22,7 +22,7 @@ describe('Konzeptbezogenes Feedback', () => {
   })
 
   it('erkennt Zeitpunkte von Zahlungen als Geldfluss-Lernziel', () => {
-    expect(getAnswerFeedback(interestPools['side-business'][2], false).headline)
+    expect(getAnswerFeedback(interestPools['side-business'][2], false).detail)
       .toMatch(/Geldfluss|Zahlung|Ausgabe|Geldabfluss/)
   })
 })

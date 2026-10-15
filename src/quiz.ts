@@ -1,4 +1,5 @@
 import { lessons } from './learning/content'
+import { getCorrectAnswerId } from './learning/answerChoices'
 import type { Lesson, Question, QuizSession } from './learning/types'
 
 export type { Question } from './learning/types'
@@ -6,12 +7,15 @@ export type { Question } from './learning/types'
 // Preserve the initial lesson export for existing callers.
 export const questions = lessons[0].questions
 
-export function isCorrectAnswer(question: Question, answer: number): boolean {
-  return answer === question.correctAnswer
+export function isCorrectAnswer(question: Question, answer: number | string): boolean {
+  if (question.type === 'choice') {
+    return typeof answer === 'string' && answer === getCorrectAnswerId(question)
+  }
+  return typeof answer === 'number' && answer === question.correctAnswer
 }
 
 export function calculateScore(
-  answers: Array<number | null>,
+  answers: Array<number | string | null>,
   quizQuestions: Question[] = questions,
 ): number {
   return answers.reduce<number>((score, answer, index) => {
@@ -29,7 +33,7 @@ export function createQuizSession(lesson: Lesson): QuizSession {
 export function submitAnswer(
   session: QuizSession,
   question: Question,
-  answer: number,
+  answer: number | string,
   previouslyEarnedQuestionIds: string[],
 ): { session: QuizSession; funkenAwarded: number } {
   if (session.responses[session.questionIndex] !== null) return { session, funkenAwarded: 0 }
